@@ -22,6 +22,9 @@ function isPublic(pathname: string): boolean {
     return true;
   if (pathname.startsWith("/checkin/")) return true;
   if (/^\/research\/sessions\/[^/]+\/run\/?$/.test(pathname)) return true;
+  // The AI assistant is available to everyone — it holds no user data and
+  // never touches accounts; its prompt refuses account access by design.
+  if (pathname === "/api/assistant") return true;
   return false;
 }
 
