@@ -4,6 +4,8 @@
 
 **Game Research & Operations Platform** — the central nervous system connecting games, participants, field teams, surveys, sponsors, locations, events, equipment, research data, and institutional programs.
 
+> New here? Read the page-by-page guide in [docs/PLATFORM_GUIDE.md](docs/PLATFORM_GUIDE.md) — or ask the in-app assistant (💬 bottom-right on every page) for a live tour.
+
 Built on the Master Blueprint: Next.js + TypeScript + Supabase + Tailwind (Vercel-ready).
 
 ## Quick start
