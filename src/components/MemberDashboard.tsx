@@ -254,6 +254,13 @@ export default function MemberDashboard({
     };
   }, [signing, step, draft1]);
 
+  async function signOut() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.replace("/login");
+    router.refresh();
+  }
+
   async function lockBubble() {
     setBusy(true);
     setError(null);
@@ -292,7 +299,14 @@ export default function MemberDashboard({
 
   return (
     <div className="w-full max-w-2xl space-y-6">
-      <header className="text-center">
+      <header className="relative text-center">
+        <button
+          type="button"
+          onClick={signOut}
+          className="absolute right-0 top-0 rounded border border-gsx-border px-3 py-1.5 text-xs text-gsx-muted transition-colors hover:border-gsx-danger/50 hover:text-gsx-text"
+        >
+          Sign out
+        </button>
         <div className="gsx-gradient-text text-3xl font-bold tracking-wide">GAMESPEXS</div>
         <p className="mt-1 text-sm text-gsx-muted">
           {locked ? "Bubble locked — welcome to the field." : "72-hour free-look tour"}
