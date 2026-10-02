@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+:root {
+  /* GAMESPEXS brand palette — pulled from the logo */
+  --gsx-bg: #0f1210;          /* deep charcoal-green base */
+  --gsx-panel: #151a17;       /* panel */
+  --gsx-panel-2: #1b211d;     /* raised panel */
+  --gsx-border: #2a332c;      /* hairline */
+  --gsx-text: #eef4ef;        /* near-white with green cast */
+  --gsx-muted: #93a396;       /* sage gray */
+
+  --gsx-accent: #5aa9e6;      /* Bears/Illini blue (links, focus, highlights) */
+  --gsx-accent-2: #f08c3a;    /* signature orange (G, A + target ring) */
+  --gsx-gold: #d9a441;        /* gold rim + XS lettering */
+  --gsx-warn: #f5a742;        /* gold-orange warnings */
+  --gsx-danger: #ff6b6b;
+}
+
+@theme inline {
+  --color-gsx-bg: var(--gsx-bg);
+  --color-gsx-panel: var(--gsx-panel);
+  --color-gsx-panel-2: var(--gsx-panel-2);
+  --color-gsx-border: var(--gsx-border);
+  --color-gsx-text: var(--gsx-text);
+  --color-gsx-muted: var(--gsx-muted);
+  --color-gsx-accent: var(--gsx-accent);
+  --color-gsx-accent-2: var(--gsx-accent-2);
+  --color-gsx-gold: var(--gsx-gold);
+  --color-gsx-warn: var(--gsx-warn);
+  --color-gsx-danger: var(--gsx-danger);
+}
+
+html, body {
+  background: var(--gsx-bg);
+  color: var(--gsx-text);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+::selection { background: var(--gsx-accent); color: #0b162a; }
+
+/* Slim dark scrollbars */
+* { scrollbar-width: thin; scrollbar-color: var(--gsx-border) transparent; }
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-thumb { background: var(--gsx-border); border-radius: 4px; }
+
+/* Brand gradient text: Illini orange → electric jade stripe → blue base */
+.gsx-gradient-text {
+  background: linear-gradient(92deg, #ff552e 0%, #ff552e 30%, #45e0a6 44%, #45e0a6 56%, #2a5ca8 72%, #2a5ca8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Gradient rule used under page titles */
+.gsx-rule {
+  background: linear-gradient(90deg, #ff552e, #45e0a6 48%, #2a5ca8 78%, transparent);
+  height: 2px;
+}
+
+/* Brand gradient (buttons): orange band on top, thin electric-jade stripe,
+   Illini navy base. White ink — the navy end swallows dark text. */
+.gsx-brand-gradient {
+  background-image: linear-gradient(90deg, #ff552e 0%, #ff552e 36%, #45e0a6 46%, #45e0a6 54%, #13294b 64%, #13294b 100%);
+  color: #f5f7fa;
+}
+
+/* Print: white paper, dark ink, hide chrome */
+@media print {
+  :root {
+    --gsx-bg: #ffffff;
+    --gsx-panel: #ffffff;
+    --gsx-panel-2: #f5f5f2;
+    --gsx-border: #cccccc;
+    --gsx-text: #111111;
+    --gsx-muted: #555555;
+  }
+  aside, nav, .gsx-rule { display: none !important; }
+  body { background: #ffffff !important; color: #111111 !important; }
+  .lg\:pl-64 { padding-left: 0 !important; }
+}

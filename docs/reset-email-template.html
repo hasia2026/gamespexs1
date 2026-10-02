@@ -1,0 +1,120 @@
+<!--
+  GAMESPEXS — branded password-reset email (Supabase Auth "Reset Password" template).
+
+  HOW TO INSTALL (Supabase Dashboard; there is no CLI/MCP tool for auth emails):
+  1. Supabase Dashboard → your project → Authentication → Emails → "Reset Password".
+  2. Set the subject to:  Reset your GAMESPEXS password
+  3. Copy EVERYTHING below the "BEGIN TEMPLATE" line (keep the HTML) and paste it
+     into the message body (source/HTML mode), then Save.
+  4. Authentication → URL Configuration:
+     - Site URL: your production URL (e.g. https://gamespexs.vercel.app)
+     - Redirect URLs must include:
+         https://YOUR-DOMAIN/reset-password
+         http://localhost:3000/reset-password
+         http://localhost:62169/reset-password
+  5. Send yourself a test from /forgot-password.
+
+  Template variables (Supabase Go templates — do not remove):
+    {{ .ConfirmationURL }}  one-time recovery link (required)
+    {{ .Email }}            the recipient's address
+-->
+
+<!-- BEGIN TEMPLATE -->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <title>Reset your GAMESPEXS password</title>
+  </head>
+  <body style="margin:0; padding:0; background-color:#0b1420;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#0b1420;">
+      <tr>
+        <td align="center" style="padding:32px 16px; font-family:'Segoe UI', Helvetica, Arial, sans-serif;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:520px; background-color:#13294b; border-radius:12px; overflow:hidden; border:1px solid #24314f;">
+
+            <!-- brand stripe: orange → jade → navy -->
+            <tr>
+              <td width="36%" height="8" style="background-color:#ff552e; font-size:0; line-height:0;">&nbsp;</td>
+              <td width="18%" height="8" style="background-color:#45e0a6; font-size:0; line-height:0;">&nbsp;</td>
+              <td width="46%" height="8" style="background-color:#13294b; font-size:0; line-height:0;">&nbsp;</td>
+            </tr>
+
+            <!-- wordmark -->
+            <tr>
+              <td style="padding:32px 36px 4px;">
+                <div style="font-size:20px; font-weight:700; letter-spacing:5px; color:#ffffff;">GAMESPEXS</div>
+                <div style="padding-top:6px; font-size:10px; font-weight:600; letter-spacing:2px; color:#8fa3bd;">GAME RESEARCH &amp; OPERATIONS</div>
+              </td>
+            </tr>
+
+            <!-- body -->
+            <tr>
+              <td style="padding:20px 36px 0;">
+                <h1 style="margin:0; font-size:22px; font-weight:700; color:#ffffff;">Reset your password</h1>
+                <p style="margin:12px 0 0; font-size:14px; line-height:22px; color:#b9c7da;">
+                  We received a request to reset the password for
+                  <strong style="color:#ffffff;">{{ .Email }}</strong>. Click the button below to set a
+                  new one — the link is single-use and expires quickly for security.
+                </p>
+              </td>
+            </tr>
+
+            <!-- CTA -->
+            <tr>
+              <td style="padding:24px 36px 8px;">
+                <a
+                  href="{{ .ConfirmationURL }}"
+                  style="display:inline-block; padding:14px 28px; border-radius:8px; background-color:#ff552e; background-image:linear-gradient(100deg,#ff552e 0%,#ff552e 40%,#45e0a6 52%,#13294b 100%); color:#ffffff; font-size:14px; font-weight:700; text-decoration:none;"
+                >Set a new password &rarr;</a>
+              </td>
+            </tr>
+
+            <!-- fallback link + safety note -->
+            <tr>
+              <td style="padding:8px 36px 24px;">
+                <p style="margin:0 0 10px; font-size:12px; line-height:18px; color:#8fa3bd;">
+                  Button not working? Copy this link into your browser:<br />
+                  <span style="color:#5aa9e6; word-break:break-all;">{{ .ConfirmationURL }}</span>
+                </p>
+                <p style="margin:0; font-size:12px; line-height:18px; color:#8fa3bd;">
+                  Didn't ask for this? Ignore this email — your password stays exactly as it was.
+                </p>
+              </td>
+            </tr>
+
+            <!-- closing line: the house motto -->
+            <tr>
+              <td style="padding:18px 36px 28px; border-top:1px solid #24314f;">
+                <p style="margin:0; font-size:13px; line-height:20px; font-style:italic; color:#d9a441; text-align:center;">
+                  In games you get another life, in life you get another game!!!!!
+                </p>
+              </td>
+            </tr>
+          </table>
+
+          <div style="padding-top:16px; font-size:11px; color:#5b6b82;">
+            GAMESPEXS &middot; Game Research &amp; Operations Platform
+          </div>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
+<!-- END TEMPLATE -->
+
+<!-- Plain-text version (Supabase "Reset Password" → plain text body):
+Hi there,
+
+We received a request to reset the password for {{ .Email }}.
+
+Set a new password here:
+{{ .ConfirmationURL }}
+
+If you didn't ask for this, you can ignore this email — your password stays the same.
+
+In games you get another life, in life you get another game!!!!!
+
+— GAMESPEXS
+-->
