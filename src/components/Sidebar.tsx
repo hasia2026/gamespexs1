@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { NAV } from "@/lib/nav";
 import { APP_TAGLINE } from "@/lib/config";
+import { signOut } from "@/app/actions";
 
 function isActive(pathname: string, href: string): boolean {
   if (href === "/") return pathname === "/";
@@ -90,8 +91,19 @@ export default function Sidebar() {
           })}
         </nav>
 
-        <div className="border-t border-gsx-border px-5 py-3 text-[11px] text-gsx-muted">
-          Blueprint v1 · 36-section build
+        <div className="border-t border-gsx-border px-3 py-3">
+          <form action={signOut}>
+            <button
+              type="submit"
+              className="flex w-full items-center gap-2.5 rounded px-3 py-2 text-sm text-gsx-muted transition-colors hover:bg-gsx-panel-2 hover:text-gsx-text"
+            >
+              <span className="w-5 text-center text-base">⎋</span>
+              Sign out
+            </button>
+          </form>
+          <div className="px-3 pb-1 pt-2 text-[11px] text-gsx-muted">
+            Blueprint v1 · 36-section build
+          </div>
         </div>
       </aside>
       {open && (
