@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
 import { getQuestions, getSessionDetail, getSurveys } from "@/lib/data";
-import { createClient } from "@/lib/supabase/server";
 import SurveyRunner from "@/components/SurveyRunner";
 import type { SurveyQuestion } from "@/lib/types";
 
@@ -22,26 +21,14 @@ export default async function SurveyRunnerPage({
     surveys[0];
   if (!survey) notFound();
 
-  // Quadrant-balanced routing: shuffled round-robin across Q1–Q4 (blueprint matrix).
-  // Falls back to plain ordinal order if the engine is unavailable.
-  const supabase = await createClient();
-  let questions: SurveyQuestion[] = [];
-  if (supabase) {
-    const { data: plan } = await supabase.rpc("quadrant_routing_plan", { p_survey_id: survey.id });
-    questions = ((plan ?? []) as Record<string, unknown>[]).map((r) => ({
-      id: r.question_id as string,
-      survey_id: survey.id,
-      ordinal: r.ordinal as number,
-      prompt: r.prompt as string,
-      question_type: r.question_type as SurveyQuestion["question_type"],
-      options: (r.options ?? []) as unknown[],
-      required: (r.required ?? false) as boolean,
-      quadrant: (r.quadrant as string) ?? null,
-    }));
-  }
-  if (questions.length === 0) {
-    questions = (await getQuestions(survey.id)).slice(0, survey.question_limit);
-  }
+  // Tablet rules (Steve directive): a mandatory sequential flow — the immediate
+  // post-game queries display first, followed by the historical play-frequency
+  // fields. Ordinal order is kept inside each phase; no shuffling.
+  const phaseRank = (p?: string | null) => (p === "play_history" ? 1 : 0);
+  const questions: SurveyQuestion[] = (await getQuestions(survey.id))
+    .slice()
+    .sort((a, b) => phaseRank(a.phase) - phaseRank(b.phase) || a.ordinal - b.ordinal)
+    .slice(0, survey.question_limit);
 
   return (
     <SurveyRunner

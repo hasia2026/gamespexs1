@@ -17,12 +17,12 @@ const QUAD_META: Record<string, { label: string; hue: string }> = {
   q4: { label: "Q4 · Card & Odd", hue: "#d9a441" },
 };
 
-function RunnerSubmit() {
+function RunnerSubmit({ disabled }: { disabled: boolean }) {
   const { pending } = useFormStatus();
   return (
     <button
       type="submit"
-      disabled={pending}
+      disabled={pending || disabled}
       className="rounded-xl gsx-brand-gradient px-8 py-4 text-lg font-bold shadow-lg transition-opacity hover:opacity-90 disabled:opacity-40"
     >
       {pending ? "Saving…" : "Submit Survey →"}
@@ -43,6 +43,9 @@ export default function SurveyRunner({
 }) {
   const [state, action] = useActionState<ActionState | null, FormData>(submitSurveyRun, null);
   const [step, setStep] = useState(0);
+  // No-skip rule: every answer is tracked so the operator cannot advance past
+  // an unanswered field. Back (review) stays available; forward does not.
+  const [answers, setAnswers] = useState<Record<string, string>>({});
   const [startedAt] = useState(() => Date.now());
   const [elapsed, setElapsed] = useState(0);
   const autoSubmitted = useRef(false);
@@ -70,6 +73,16 @@ export default function SurveyRunner({
   const progress = questions.length > 0 ? ((step + (state?.ok ? 1 : 0)) / questions.length) * 100 : 0;
 
   const fieldId = useMemo(() => (qq: SurveyQuestion) => `q_${qq.id}`, []);
+  const isAnswered = (qq: SurveyQuestion) => (answers[fieldId(qq)] ?? "").trim().length > 0;
+  const setAnswer = (key: string, value: string) =>
+    setAnswers((prev) => ({ ...prev, [key]: value }));
+
+  // Every question belongs to a quadrant cell of the on-screen matrix; derive
+  // from the routing engine's quadrant, falling back to the ordinal slot.
+  const quadOf = (qq: SurveyQuestion): keyof typeof QUAD_META => {
+    if (qq.quadrant && qq.quadrant in QUAD_META) return qq.quadrant;
+    return `q${((qq.ordinal - 1) % 4) + 1}` as keyof typeof QUAD_META;
+  };
 
   if (state?.ok) {
     return (
@@ -81,8 +94,11 @@ export default function SurveyRunner({
     );
   }
 
+  const current = questions[step];
+  const currentQuad = current ? QUAD_META[quadOf(current)] : null;
+
   return (
-    <div className="flex w-full max-w-3xl flex-1 flex-col">
+    <div className="flex w-full max-w-5xl flex-1 flex-col">
       {/* Header: brand + timer */}
       <header className="flex items-center justify-between">
         <div className="gsx-gradient-text text-2xl font-bold tracking-wide">GAMESPEXS</div>
@@ -123,129 +139,209 @@ export default function SurveyRunner({
             style={{
               width: `${progress}%`,
               background: "linear-gradient(90deg, #5aa9e6, #13294b)",
-            }}          />
-        </div>        </div>
+            }}
+          />
+        </div>
+      </div>
 
-      {/* Quadrant matrix: which slice of the catalog this question speaks for */}
-      {questions.some((qq) => qq.quadrant) && (
-        <div className="mt-4 grid grid-cols-4 gap-2">
-          {(["q1", "q2", "q3", "q4"] as const).map((code) => {
-            const active = questions[step]?.quadrant === code;
-            const meta = QUAD_META[code];
-            return (
+      {/* Strict 4-quadrant symmetrical matrix — every interface element lives in
+          one of the four cells, aligned to the catalog's quadrant fields. */}
+      <div className="mt-6 grid flex-1 grid-cols-2 grid-rows-2 gap-3">
+        {(["q1", "q2", "q3", "q4"] as const).map((code) => {
+          const meta = QUAD_META[code];
+          const isActive = !!current && quadOf(current) === code;
+          return (
+            <section
+              key={code}
+              aria-current={isActive ? "step" : undefined}
+              className={`flex min-h-[230px] flex-col rounded-xl border p-4 transition-colors ${
+                isActive
+                  ? "border-2 bg-[#151a17]"
+                  : "border-gsx-border/60 bg-gsx-panel/40"
+              }`}
+              style={isActive ? { borderColor: meta.hue } : undefined}
+            >
               <div
-                key={code}
-                className={`rounded-lg border border-gsx-border px-2 py-1.5 text-center text-[10px] uppercase tracking-wide transition-colors ${
-                  active ? "font-bold text-[#0f1210]" : "text-gsx-muted"
+                className={`rounded-md px-2 py-1 text-center text-[10px] font-bold uppercase tracking-wide ${
+                  isActive ? "text-[#0f1210]" : "text-gsx-muted"
                 }`}
-                style={active ? { background: meta.hue, borderColor: meta.hue } : undefined}
+                style={isActive ? { background: meta.hue } : undefined}
               >
                 {meta.label}
               </div>
-            );
-          })}
-        </div>
-      )}
 
-      {/* One question per screen */}
-      <form id="runner-form" action={action} className="mt-8 flex flex-1 flex-col">
+              {isActive ? (
+                <div className="mt-3 flex flex-1 flex-col">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-mono text-sm text-gsx-accent-2">
+                      {String(current!.ordinal).padStart(2, "0")}
+                    </span>
+                    {current!.phase === "play_history" ? (
+                      <span className="rounded-full border border-gsx-border px-2 py-0.5 text-[10px] uppercase tracking-wide text-gsx-muted">
+                        Play history
+                      </span>
+                    ) : (
+                      <span className="rounded-full border border-gsx-accent/40 bg-gsx-accent/10 px-2 py-0.5 text-[10px] uppercase tracking-wide text-gsx-accent">
+                        Post-game
+                      </span>
+                    )}
+                    {current!.custom_slot && (
+                      <span className="rounded-full border border-gsx-gold/40 bg-gsx-gold/10 px-2 py-0.5 text-[10px] uppercase tracking-wide text-gsx-gold">
+                        Custom field · {current!.custom_slot.replace(/_/g, " ")}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Verbatim display: prompts wrap fully — never truncated. */}
+                  <h2 className="mt-2 min-w-0 text-xl font-semibold leading-snug break-words md:text-2xl">
+                    {current!.prompt}
+                  </h2>
+
+                  <div className="mt-4 space-y-3">
+                    {(current!.question_type === "likert_5" ||
+                      current!.question_type === "multiple_choice") &&
+                      (current!.options as string[]).map((label) => (
+                        <BigChoice
+                          key={label}
+                          name={fieldId(current!)}
+                          value={label}
+                          label={label}
+                          checked={answers[fieldId(current!)] === label}
+                          onSelect={(v) => setAnswer(fieldId(current!), v)}
+                        />
+                      ))}
+
+                    {current!.question_type === "boolean" && (
+                      <div className="grid grid-cols-2 gap-4">
+                        <BigChoice
+                          name={fieldId(current!)}
+                          value="true"
+                          label="Yes"
+                          checked={answers[fieldId(current!)] === "true"}
+                          onSelect={(v) => setAnswer(fieldId(current!), v)}
+                        />
+                        <BigChoice
+                          name={fieldId(current!)}
+                          value="false"
+                          label="No"
+                          checked={answers[fieldId(current!)] === "false"}
+                          onSelect={(v) => setAnswer(fieldId(current!), v)}
+                        />
+                      </div>
+                    )}
+
+                    {current!.question_type === "rating_10" && (
+                      <div className="grid grid-cols-5 gap-3">
+                        {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+                          <RatingButton
+                            key={n}
+                            name={fieldId(current!)}
+                            value={n}
+                            checked={answers[fieldId(current!)] === String(n)}
+                            onSelect={(v) => setAnswer(fieldId(current!), v)}
+                          />
+                        ))}
+                      </div>
+                    )}
+
+                    {(current!.question_type === "free_text" ||
+                      current!.question_type === "ranking") && (
+                      <textarea
+                        name={fieldId(current!)}
+                        rows={current!.question_type === "free_text" ? 4 : 3}
+                        autoComplete="off"
+                        data-1p-ignore="true"
+                        value={answers[fieldId(current!)] ?? ""}
+                        onChange={(e) => setAnswer(fieldId(current!), e.target.value)}
+                        className="w-full rounded-xl border border-gsx-border bg-gsx-panel px-4 py-3 text-lg outline-none focus:border-gsx-accent/60"
+                        placeholder={
+                          current!.question_type === "free_text"
+                            ? "Type your answer…"
+                            : "List the options in order, best first."
+                        }
+                      />
+                    )}
+                  </div>
+
+                  <p className="mt-3 text-[11px] text-gsx-muted">
+                    Read each question fully — fields can&apos;t be skipped or auto-filled.
+                  </p>
+                </div>
+              ) : (
+                <div className="flex flex-1 items-center justify-center px-2 text-center">
+                  <p className="text-xs text-gsx-muted/70">
+                    Locked — answer the active question to continue.
+                  </p>
+                </div>
+              )}
+            </section>
+          );
+        })}
+      </div>
+
+      {/* All questions stay mounted (hidden) so the time-limit auto-submit
+          still captures everything answered so far. */}
+      <form id="runner-form" action={action} className="hidden" autoComplete="off">
         <input type="hidden" name="session_id" value={sessionId} />
         <input type="hidden" name="survey_id" value={survey.id} />
         <input type="hidden" name="participant_code" value={participantCode} />
-
-        {questions.map((qq, i) => (
-          <div key={qq.id} className={i === step ? "block" : "hidden"}>
-            <div className="flex items-baseline gap-3">
-              <span className="font-mono text-sm text-gsx-accent-2">
-                {String(qq.ordinal).padStart(2, "0")}
-              </span>
-              <h2 className="text-2xl font-semibold leading-snug">{qq.prompt}</h2>
-            </div>
-
-            <div className="mt-6 space-y-3">
-              {qq.question_type === "likert_5" &&
-                (qq.options as string[]).map((label) => (
-                  <BigChoice key={label} name={fieldId(qq)} value={label} label={label} />
-                ))}
-
-              {qq.question_type === "multiple_choice" &&
-                (qq.options as string[]).map((label) => (
-                  <BigChoice key={label} name={fieldId(qq)} value={label} label={label} />
-                ))}
-
-              {qq.question_type === "boolean" && (
-                <div className="grid grid-cols-2 gap-4">
-                  <BigChoice name={fieldId(qq)} value="true" label="Yes" />
-                  <BigChoice name={fieldId(qq)} value="false" label="No" />
-                </div>
-              )}
-
-              {qq.question_type === "rating_10" && (
-                <>
-                  <input type="hidden" name={fieldId(qq)} value="" data-rating-slot={qq.id} />
-                  <div className="grid grid-cols-5 gap-3">
-                    {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
-                      <RatingButton key={n} name={fieldId(qq)} value={n} />
-                    ))}
-                  </div>
-                </>
-              )}
-
-              {qq.question_type === "free_text" && (
-                <textarea
-                  name={fieldId(qq)}
-                  rows={5}
-                  className="w-full rounded-xl border border-gsx-border bg-gsx-panel px-4 py-3 text-lg outline-none focus:border-gsx-accent/60"
-                  placeholder="Type your answer…"
-                />
-              )}
-
-              {qq.question_type === "ranking" && (
-                <textarea
-                  name={fieldId(qq)}
-                  rows={4}
-                  className="w-full rounded-xl border border-gsx-border bg-gsx-panel px-4 py-3 text-lg outline-none focus:border-gsx-accent/60"
-                  placeholder="List the options in order, best first."
-                />
-              )}
-            </div>
-          </div>
+        {questions.map((qq) => (
+          <input key={qq.id} type="hidden" name={fieldId(qq)} value={answers[fieldId(qq)] ?? ""} />
         ))}
+      </form>
 
-        {!state?.ok && state && <p className="mt-4 text-sm text-gsx-danger">{state.message}</p>}
+      {!state?.ok && state && <p className="mt-4 text-sm text-gsx-danger">{state.message}</p>}
 
-        <div className="mt-auto flex items-center justify-between pt-10">
-          <button
-            type="button"
-            onClick={() => setStep((s) => Math.max(0, s - 1))}
-            disabled={step === 0}
-            className="rounded-xl border border-gsx-border px-6 py-3 text-sm text-gsx-muted transition-colors hover:text-gsx-text disabled:opacity-30"
-          >
-            ← Back
-          </button>
+      <div className="mt-4 flex items-center justify-between pb-2">
+        <button
+          type="button"
+          onClick={() => setStep((s) => Math.max(0, s - 1))}
+          disabled={step === 0}
+          className="rounded-xl border border-gsx-border px-6 py-3 text-sm text-gsx-muted transition-colors hover:text-gsx-text disabled:opacity-30"
+        >
+          ← Back
+        </button>
+        <div className="flex items-center gap-3">
+          {!isAnswered(current!) && (
+            <span className="text-xs text-gsx-muted">Answer this question to continue →</span>
+          )}
           {step < questions.length - 1 ? (
             <button
               type="button"
               onClick={() => setStep((s) => Math.min(questions.length - 1, s + 1))}
-              className="rounded-xl bg-gsx-accent px-8 py-4 text-lg font-bold text-[#0f1210] transition-opacity hover:opacity-90"
+              disabled={!isAnswered(current!)}
+              className="rounded-xl bg-gsx-accent px-8 py-4 text-lg font-bold text-[#0f1210] transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
             >
               Next →
             </button>
           ) : (
-            <RunnerSubmit />
+            <RunnerSubmit disabled={!isAnswered(current!)} />
           )}
         </div>
-      </form>
+      </div>
     </div>
   );
 }
 
-function BigChoice({ name, value, label }: { name: string; value: string; label: string }) {
-  const [checked, setChecked] = useState(false);
+function BigChoice({
+  name,
+  value,
+  label,
+  checked,
+  onSelect,
+}: {
+  name: string;
+  value: string;
+  label: string;
+  checked: boolean;
+  onSelect: (value: string) => void;
+}) {
   return (
     <label
-      className={`flex cursor-pointer items-center gap-4 rounded-xl border px-5 py-4 text-lg transition-colors ${
-        checked ? "border-gsx-accent bg-gsx-accent/15 text-gsx-accent" : "border-gsx-border bg-gsx-panel hover:border-gsx-accent/40"
+      className={`flex min-w-0 cursor-pointer items-center gap-4 rounded-xl border px-5 py-4 text-lg transition-colors ${
+        checked
+          ? "border-gsx-accent bg-gsx-accent/15 text-gsx-accent"
+          : "border-gsx-border bg-gsx-panel hover:border-gsx-accent/40"
       }`}
     >
       <input
@@ -253,28 +349,39 @@ function BigChoice({ name, value, label }: { name: string; value: string; label:
         name={name}
         value={value}
         checked={checked}
-        onChange={() => setChecked(true)}
+        onChange={() => onSelect(value)}
         className="h-5 w-5 accent-[#5aa9e6]"
       />
-      {label}
+      <span className="min-w-0 break-words">{label}</span>
     </label>
   );
 }
 
-function RatingButton({ name, value }: { name: string; value: number }) {
-  const [picked, setPicked] = useState(false);
+function RatingButton({
+  name,
+  value,
+  checked,
+  onSelect,
+}: {
+  name: string;
+  value: number;
+  checked: boolean;
+  onSelect: (value: string) => void;
+}) {
   return (
     <label
       className={`flex h-16 cursor-pointer items-center justify-center rounded-xl border text-2xl font-bold transition-colors ${
-        picked ? "border-gsx-accent bg-gsx-accent/20 text-gsx-accent" : "border-gsx-border bg-gsx-panel hover:border-gsx-accent/40"
+        checked
+          ? "border-gsx-accent bg-gsx-accent/20 text-gsx-accent"
+          : "border-gsx-border bg-gsx-panel hover:border-gsx-accent/40"
       }`}
     >
       <input
         type="radio"
         name={name}
         value={String(value)}
-        checked={picked}
-        onChange={() => setPicked(true)}
+        checked={checked}
+        onChange={() => onSelect(String(value))}
         className="sr-only"
       />
       {value}

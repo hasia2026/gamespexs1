@@ -94,3 +94,38 @@ kitchen, the office, and the books — and the books are the payout ledger.
 **60-second demo for anyone who asks:** sign in as the demo member → show
 the one page → sign out → sign in as admin → let the sidebar load → "this
 half is ours."
+
+## 8. Value notes — before removing anything
+
+Some items on the October directive list would remove things that are
+already built, working, and saving money. Before deleting them, here's what
+each one does in plain terms:
+
+**The automatic money splitter (Payouts Ledger).** When a research package
+sells — say $333 — the platform splits it three ways instantly: $111 to the
+participant side, $111 to the interviewer, $111 stays with the company. It
+also records judge percentages and street-team commissions. **The value:**
+nobody has to do this math in a spreadsheet ever again, and it never makes
+a math mistake. It keeps a permanent receipt for every dollar, and it
+totals each person's yearly earnings and flags anyone who crosses **$600**
+— that's the IRS line where we must collect a W-9 and file a 1099 form.
+Missing that means penalties. The splitter is already built and costs $0 a
+month to run (it lives in the database we already pay for). Removing it
+doesn't remove the work — the splits and the $600 rule still have to
+happen; we'd just be doing them slower, by hand, with more mistakes. If the
+concern is control: we can make every payout wait for a manual "approve"
+click — the receipts stay, but nothing moves until you say so.
+
+**QR check-in at events.** A person walks up, scans the code with their
+phone, and they're checked in — two seconds, no staff member typing names.
+Every scan is logged, so attendance counts are exact and sponsors can trust
+the numbers. **The value:** shorter lines at the door, no spelling errors,
+and accurate attendance the sponsors pay for. Removing it means typing every
+attendee in by hand. (If the concern is phones at the door: staff can keep
+the scanner and attendees never touch their phones — same accurate numbers.)
+
+**Survey tablet rules — built, not removed.** The evaluation screens now
+follow the directive: the post-game questions display first, the
+play-frequency question comes last, question 8 is the favorite-sports-team
+field, text shows fully and can't be skipped or auto-filled, and everything
+sits in a strict 2×2 quadrant grid made for tablets.

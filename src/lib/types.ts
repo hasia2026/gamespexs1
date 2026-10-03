@@ -175,6 +175,9 @@ export interface SurveyQuestion {
   options: unknown[];
   required: boolean;
   quadrant?: string | null;
+  // Tablet rules (0017): evaluation phase ordering + slot-8 custom variable.
+  phase?: "post_game" | "play_history" | null;
+  custom_slot?: string | null;
 }
 
 export interface SurveyResponse {
