@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getDashboardStats, getFindings, getMembershipChoices, getSessions, getStudies } from "@/lib/data";
 import { getActiveProfile } from "@/lib/roles";
+import { createClient } from "@/lib/supabase/server";
 import { Badge, Card, PageHeader, StatCard, Table, Td, statusTone } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
@@ -10,6 +11,16 @@ export default async function CommandCenter() {
   // Sponsor contacts live in the read-only partner portal, not the staff console.
   const profile = await getActiveProfile();
   if (profile?.role === "sponsor") redirect("/portal");
+
+  // Members have no staff profile — land them on their one-page dashboard
+  // instead of an empty staff console.
+  if (!profile) {
+    const supabase = await createClient();
+    if (supabase) {
+      const { data: mm } = await supabase.rpc("member_me");
+      if ((mm as { ok?: boolean } | null)?.ok) redirect("/member");
+    }
+  }
 
   const [stats, studies, sessions, findings, choices] = await Promise.all([
     getDashboardStats(),
