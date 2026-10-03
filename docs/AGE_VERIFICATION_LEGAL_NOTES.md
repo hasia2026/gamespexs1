@@ -41,6 +41,24 @@ Not legal advice — have an attorney confirm before launch.*
   controls: Verification Specialists see verification *status*, never raw documents.
   Every access is already covered by the platform's audit log.
 
+### Implementation status (October 2026)
+
+The safe pattern is now **partially implemented** in software:
+
+- **Attestation — live.** The join form requires an "I am 18 or older" checkbox;
+  signup records `attested_18` + `attested_at` on the member row (migration 0016).
+- **Vendor KYC hook — wired, awaiting a vendor key.** "Verify your age with ID" on the
+  member dashboard calls `/api/verification/start`. With `STRIPE_IDENTITY_SECRET_KEY`
+  set it opens a Stripe Identity document-check session and returns only the session
+  URL; with no vendor key it answers with a friendly "not switched on yet" message.
+- **Derived flags only — enforced.** The database stores `verified_18`, `verified_at`,
+  `verification_vendor`, and `verification_ref`. No ID images or dates of birth are
+  ever received or stored. Until a completion webhook flips `verified_18`, members who
+  have only attested show an "18+ attested" (not verified) badge.
+- **Remaining before switch-on:** add the vendor key to the environment, implement the
+  completion webhook that writes `verified_18` from the vendor's session result, and
+  run the privacy-policy/retention review from Step 4.
+
 ## Related payroll note (the ledger helps here)
 
 Street-team workers, judges, and interviewers who earn **$600+ in a year** require a

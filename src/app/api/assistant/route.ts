@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 const SYSTEM_PROMPT = `You are the GAMESPEXS Platform Assistant, a concise, friendly helper embedded in the GAMESPEXS game research & operations platform.
 
 What you know:
-- Members join at /join ($2.25 standard or the $110 premium bundle, of which exactly $10 goes to charity). Every member gets a permanent Player Number starting at #1001, a free-look tour with no countdown (they lock whenever they choose), and locks their bubble by picking two signature colors and signing. Their public identity is always [Last Initial] + [Colors] — first names are never shown publicly. Members can download a shareable identity card from the member page. The quadrant matrix at /member/play is a 2x2 game catalog with 1-5 star ratings and 14-day per-quadrant lockouts.
+- Members join at /join ($2.25 standard, the $110 premium bundle of which exactly $10 goes to charity, or both fees together at $112.25 — the choice is deliberately left open). Every member gets a permanent Player Number starting at #1001, a free-look tour with no countdown (they lock whenever they choose), and locks their bubble by picking two signature colors and signing. Their public identity is always [Last Initial] + [Colors] — first names are never shown publicly. Members can download a shareable identity card from the member page. The quadrant matrix at /member/play is a 2x2 game catalog with 1-5 star ratings and 14-day per-quadrant lockouts.
 - Staff sign in at /login and land on the Command Center with the full sidebar (Game Library, Research Engine, Field Operations, Sponsors, People, Admin). Sponsors land on a read-only portal at /portal.
 - Founding membership is capped at the first 1,000 Player Numbers, shown live on the member dashboard leaderboard.
 
@@ -45,7 +45,7 @@ const KB: Array<{ test: RegExp; reply: string }> = [
   {
     test: /(join|sign ?up|price|cost|fee|how much|\$2|\b110\b|premium|standard|charity)/i,
     reply:
-      "Joining happens at /join: Standard is a one-time $2.25 activation fee; the Premium bundle is $110, of which exactly $10 goes to the children's charity ledger. After joining you get a permanent Player Number and pick two signature colors to lock your bubble.",
+      "Joining happens at /join: Standard is a one-time $2.25 activation fee; the Premium bundle is $110, of which exactly $10 goes to the children's charity ledger; and there's a third option to pay both fees together ($112.25) — the choice is yours. After joining you get a permanent Player Number and pick two signature colors to lock your bubble.",
   },
   {
     test: /(player ?number|#?1001|numbering|username|handle)/i,

@@ -62,7 +62,8 @@ Supabase authentication and live data.
 | Community | ✅ Local Heroes, partner orgs, community events (`/community`) |
 | Institutional | ✅ Grants & programs tracking (`/institutional`) |
 | Content | ✅ Media library + reader (`/content`) |
-| Member Foundation | ✅ Dual pricing, Player Numbers, 1% charity ledger, 72-hour free-look consent (`/join`, `/member`) |
+| Member Foundation | ✅ Dual pricing (Standard / Premium / both-fees option), Player Numbers, 1% charity ledger, 72-hour free-look consent (`/join`, `/member`) |
+| Age Verification (Level 2) | ✅ 18+ attestation at signup + vendor-KYC hook (`/api/verification/start`); derived flags only — no ID images or DOB stored |
 | Quadrant Engine | ✅ 2×2 matrix, balanced question routing, 1–5 star catalog, 14-day lockouts (`/member/play`) |
 | Member Engagement | ✅ Founding-1,000 leaderboard + sponsor shout-out ticker on the member dashboard |
 | Member Identity Card | ✅ Shareable PNG card — last initial in signature colors, Player Number, motto (`/member`) |
@@ -133,7 +134,9 @@ persisted across reloads.
 - **Founding-1,000 scarcity** — `founding_leaderboard()` shows lowest Player Numbers + live member count
 - **Sponsor shout-outs** — `sponsor_shoutouts()` aggregates brand-mention tallies for the member ticker (no raw rows exposed)
 - **Guest persistence (addendum Q1)** — no time-expiry scripts; guest accounts browse freely and are excluded from paid research sessions until membership
-- **Upgrade window (addendum Q2)** — guests arriving from a paid-study link (`/join?paid=1`) get the tier-choice modal: $2.25 base vs $110 premium
+- **Upgrade window (addendum Q2)** — guests arriving from a paid-study link (`/join?paid=1`) get the tier-choice modal: $2.25 base vs $110 premium vs $112.25 both fees (signup counts per choice appear on the Command Center)
+- **18+ attestation (blueprint Level 2)** — required join-form checkbox recorded by the signup trigger; `verified_18` is written only by a vendor KYC completion webhook (migration 0016)
+- **Payouts CSV export** — `/api/admin/payouts/export` totals the ledger by payee and flags `W9_REQUIRED` for anyone over $600 / year (1099-NEC)
 - **Identity masking (addendum Q2)** — custom text usernames are banned; public identity is the automated `[Last Initial] + [Color]` format (leaderboard ships no first names)
 - **Dynamic signature (addendum Q3)** — the color pair is randomized on open and `🎲 Shuffle` re-rolls a fresh pair
 - **Record permanence (addendum Q4)** — the pair locks to the profile only at final signature execution; active members unlock the full research path

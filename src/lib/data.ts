@@ -43,6 +43,35 @@ function emptyStats(): DashboardStats {
   };
 }
 
+// ------------------------------------------------------- membership choices
+// Steve's experiment: signup offers Standard ($2.25), Premium ($110), or both
+// fees ($112.25) — deliberately left open so we can watch what members pick.
+export type MembershipChoices = {
+  standard: number;
+  premium: number;
+  both: number;
+  total_members: number;
+  collected_cents: number;
+  charity_cents: number;
+  // 18+ tracking (blueprint Level 2): attestation at signup, vendor KYC derived.
+  attested_18: number;
+  verified_18: number;
+};
+
+export async function getMembershipChoices(): Promise<MembershipChoices> {
+  const empty: MembershipChoices = {
+    standard: 0, premium: 0, both: 0, total_members: 0,
+    collected_cents: 0, charity_cents: 0,
+    attested_18: 0, verified_18: 0,
+  };
+  if (DEMO_MODE) return empty;
+  const supabase = await createClient();
+  if (!supabase) return empty;
+  const { data, error } = await supabase.rpc("membership_choices");
+  if (error || !data) return empty;
+  return data as MembershipChoices;
+}
+
 // ------------------------------------------------------------------ studies
 export async function getStudies(): Promise<Study[]> {
   if (DEMO_MODE) return demoStudies;

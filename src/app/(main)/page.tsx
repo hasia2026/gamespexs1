@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getDashboardStats, getFindings, getSessions, getStudies } from "@/lib/data";
+import { getDashboardStats, getFindings, getMembershipChoices, getSessions, getStudies } from "@/lib/data";
 import { getActiveProfile } from "@/lib/roles";
 import { Badge, Card, PageHeader, StatCard, Table, Td, statusTone } from "@/components/ui";
 
@@ -11,11 +11,12 @@ export default async function CommandCenter() {
   const profile = await getActiveProfile();
   if (profile?.role === "sponsor") redirect("/portal");
 
-  const [stats, studies, sessions, findings] = await Promise.all([
+  const [stats, studies, sessions, findings, choices] = await Promise.all([
     getDashboardStats(),
     getStudies(),
     getSessions(),
     getFindings(),
+    getMembershipChoices(),
   ]);
 
   const activeStudies = studies.filter((s) => s.status === "active");
@@ -91,6 +92,35 @@ export default async function CommandCenter() {
               <div className="flex justify-between"><dt className="text-gsx-muted">Games tracked</dt><dd className="tabular-nums">{stats.games_tracked}</dd></div>
               <div className="flex justify-between"><dt className="text-gsx-muted">Active people</dt><dd className="tabular-nums">{stats.people_count}</dd></div>
               <div className="flex justify-between"><dt className="text-gsx-muted">Locations</dt><dd className="tabular-nums">{stats.locations_count}</dd></div>
+            </dl>
+          </Card>
+
+          <Card>
+            <div className="mb-1 flex items-center justify-between">
+              <h2 className="font-semibold">Membership choices</h2>
+              <span className="tabular-nums text-xs text-gsx-muted">{choices.total_members} members</span>
+            </div>
+            <p className="mb-4 text-xs text-gsx-muted">Left open by design — watch what members pick.</p>
+            <dl className="space-y-2 text-sm">
+              <div className="flex justify-between"><dt className="text-gsx-muted">Standard · $2.25</dt><dd className="tabular-nums">{choices.standard}</dd></div>
+              <div className="flex justify-between"><dt className="text-gsx-muted">Premium · $110.00</dt><dd className="tabular-nums">{choices.premium}</dd></div>
+              <div className="flex justify-between"><dt className="text-gsx-muted">Both · $112.25</dt><dd className="tabular-nums font-semibold text-gsx-gold">{choices.both}</dd></div>
+              <div className="flex justify-between border-t border-gsx-border pt-2">
+                <dt className="text-gsx-muted">Collected</dt>
+                <dd className="tabular-nums">${(choices.collected_cents / 100).toFixed(2)}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-gsx-muted">Charity ledger</dt>
+                <dd className="tabular-nums text-gsx-gold">${(choices.charity_cents / 100).toFixed(2)}</dd>
+              </div>
+              <div className="flex justify-between border-t border-gsx-border pt-2">
+                <dt className="text-gsx-muted">18+ attested</dt>
+                <dd className="tabular-nums">{choices.attested_18}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-gsx-muted">18+ ID-verified</dt>
+                <dd className="tabular-nums text-gsx-gold">{choices.verified_18}</dd>
+              </div>
             </dl>
           </Card>
         </div>

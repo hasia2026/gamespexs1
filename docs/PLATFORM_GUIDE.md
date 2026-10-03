@@ -13,8 +13,10 @@ on your account type: members → `/member`, staff → Command Center, sponsors 
 ## The member experience
 
 ### `/join` — Become a member
-- **What:** The signup gate. Two mandatory paths: **$2.25 standard** or the
-  **$110 premium bundle** (exactly $10 goes to charity). A permanent
+- **What:** The signup gate. Three choices: **$2.25 standard**, the
+  **$110 premium bundle** (exactly $10 goes to charity), or **both fees**
+  ($112.25) — deliberately left open to observe what members pick (Command
+  Center → Membership choices). A permanent
   **Player Number** (starting at #1001) is reserved the moment you join.
 - **How:** Fill name/email/password, pick a tier, consent. Guests arriving from
   a paid-study link (`/join?paid=1`) see the tier-choice upgrade modal.

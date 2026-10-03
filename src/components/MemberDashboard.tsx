@@ -16,6 +16,8 @@ interface MemberInfo {
   seconds_remaining: number;
   signature_color_1: string | null;
   signature_color_2: string | null;
+  attested_18: boolean;
+  verified_18: boolean;
 }
 
 export interface LeaderRow {
@@ -73,7 +75,7 @@ function FoundingCard({
                 />
                 <span className="font-mono">#{l.player_number}</span>
               </span>
-              <span className={`text-xs capitalize ${l.tier === "premium" ? "text-gsx-gold" : "text-gsx-muted"}`}>
+              <span className={`text-xs capitalize ${(l.tier === "premium" || l.tier === "both") ? "text-gsx-gold" : "text-gsx-muted"}`}>
                 {l.tier}
               </span>
             </li>
@@ -173,6 +175,10 @@ export default function MemberDashboard({
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // 18+ verification (blueprint Level 2): attestation is recorded at signup; the
+  // "Verify your age with ID" button opens a vendor KYC session via the start route.
+  const [kycMsg, setKycMsg] = useState<string | null>(null);
+  const [kycBusy, setKycBusy] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawing = useRef(false);
   const dirty = useRef(false);
@@ -306,10 +312,54 @@ export default function MemberDashboard({
           </div>
           <div className="text-right">
             <div className="text-xs uppercase tracking-wider text-gsx-muted">Tier</div>
-            <div className={`mt-1 text-sm font-semibold capitalize ${member.tier === "premium" ? "text-gsx-gold" : "text-gsx-accent"}`}>
+            <div className={`mt-1 text-sm font-semibold capitalize ${(member.tier === "premium" || member.tier === "both") ? "text-gsx-gold" : "text-gsx-accent"}`}>
               {member.tier} · {usd(member.paid_cents)}
             </div>
           </div>
+        </div>
+
+        {/* 18+ status (derived flags only — never ID images or dates of birth). */}
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          {member.verified_18 ? (
+            <span className="rounded-full border border-gsx-gold/40 bg-gsx-gold/10 px-3 py-1 text-xs font-semibold text-gsx-gold">
+              18+ verified ✓
+            </span>
+          ) : member.attested_18 ? (
+            <span className="rounded-full border border-gsx-accent/40 bg-gsx-accent/10 px-3 py-1 text-xs text-gsx-accent">
+              18+ attested
+            </span>
+          ) : (
+            <span className="rounded-full border border-gsx-border px-3 py-1 text-xs text-gsx-muted">
+              18+ not attested
+            </span>
+          )}
+          {!member.verified_18 && (
+            <button
+              type="button"
+              disabled={kycBusy}
+              onClick={async () => {
+                setKycBusy(true);
+                setKycMsg(null);
+                try {
+                  const res = await fetch("/api/verification/start", { method: "POST" });
+                  const json = (await res.json()) as { url?: string; message?: string };
+                  if (json.url) {
+                    window.open(json.url, "_blank", "noopener");
+                  } else {
+                    setKycMsg(json.message ?? "Age verification is not available yet.");
+                  }
+                } catch {
+                  setKycMsg("Could not start age verification — try again shortly.");
+                } finally {
+                  setKycBusy(false);
+                }
+              }}
+              className="text-xs text-gsx-accent underline disabled:opacity-40"
+            >
+              {kycBusy ? "Starting…" : "Verify your age with ID →"}
+            </button>
+          )}
+          {kycMsg && <span className="text-[11px] text-gsx-muted">{kycMsg}</span>}
         </div>
 
         {member.signature_color_1 && member.signature_color_2 && (

@@ -181,6 +181,22 @@ export default function PayoutsLedger({ initial }: { initial: LedgerOverview }) 
         <div className="rounded-lg border border-gsx-accent/40 bg-gsx-accent/10 px-4 py-3 text-sm text-gsx-accent">{flash}</div>
       )}
 
+      {/* CSV export — per-payee totals with the $600 W-9 / 1099-NEC flag. */}
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gsx-border bg-gsx-panel px-4 py-3">
+        <div>
+          <div className="text-sm font-semibold">Accountant export</div>
+          <div className="text-xs text-gsx-muted">
+            Totals by payee, full transaction detail, and a W9_REQUIRED flag for anyone over $600 / year (1099-NEC).
+          </div>
+        </div>
+        <a
+          href="/api/admin/payouts/export"
+          className="rounded border border-gsx-border bg-gsx-panel-2 px-3 py-1.5 text-sm text-gsx-accent hover:border-gsx-accent/40"
+        >
+          ↓ Export CSV
+        </a>
+      </div>
+
       <section className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <div className="rounded-xl border border-gsx-border bg-gsx-panel p-4">
           <div className="text-xs uppercase tracking-wider text-gsx-muted">Total gross recorded</div>

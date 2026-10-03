@@ -19,6 +19,8 @@ interface MemberInfo {
   seconds_remaining: number;
   signature_color_1: string | null;
   signature_color_2: string | null;
+  attested_18: boolean;
+  verified_18: boolean;
 }
 
 export default async function MemberPage() {
