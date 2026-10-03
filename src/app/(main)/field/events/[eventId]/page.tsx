@@ -39,7 +39,7 @@ export default async function EventCommandPage({
     { title: "DJ shift assigned", status: "Not tracked", detail: "DJ shifts are not in the current event schema." },
     { title: "Matches begin", status: sessions.length ? "Sessions recorded" : "Not tracked", detail: "Research sessions exist; competitive match scheduling is not implemented." },
     { title: "Scores entered & results calculated", status: "Not tracked", detail: "Match score entry and standings are not in the current event schema." },
-    { title: "Payouts calculated", status: "Not tracked", detail: "No participant, contractor, or event payout ledger is connected yet." },
+    { title: "Payouts calculated", status: "Ledger ready", detail: "The payout ledger automates the blueprint's fixed splits — ⅓-⅓-⅓ studies, judge session percentages, street-team commissions. Record and approve in Admin → Payouts Ledger." },
     { title: "Media assets attached", status: "Not tracked", detail: "Event photo/video asset storage and consent tracking are not implemented." },
     { title: "Sponsor package generated", status: sponsorships.length ? "Package linked" : "No package", detail: sponsorships.length ? `${sponsorships.length} activation(s) · ${usd(sponsorRevenue)} contracted fee` : "No sponsor activation is linked to this event." },
     { title: "Event analytics updated", status: "Live roll-up", detail:`${checkins.length} check-ins · ${sessions.length} linked research sessions · ${eventMentions.length} event-linked sponsor mentions` },
@@ -47,7 +47,7 @@ export default async function EventCommandPage({
     { title: "Management operating picture", status: "This view", detail: "Current event, attendance, staffing, equipment, sponsor, and research signals are consolidated below." },
   ];
 
-  const tracked = steps.filter((step) => ["Tracked", "Staffed", "Package linked", "Live roll-up", "Sessions linked", "This view"].includes(step.status)).length;
+  const tracked = steps.filter((step) => ["Tracked", "Staffed", "Package linked", "Ledger ready", "Live roll-up", "Sessions linked", "This view"].includes(step.status)).length;
 
   return (
     <div className="space-y-6">
@@ -88,7 +88,7 @@ export default async function EventCommandPage({
           </div>
           <ol className="space-y-0">
             {steps.map((step, index) => {
-              const isTracked = ["Tracked", "Staffed", "Package linked", "Live roll-up", "Sessions linked", "This view"].includes(step.status);
+              const isTracked = ["Tracked", "Staffed", "Package linked", "Ledger ready", "Live roll-up", "Sessions linked", "This view"].includes(step.status);
               const tone = isTracked ? "green" : step.status === "Manual review" || step.status === "Needs assignment" ? "amber" : "gray";
               return (
                 <li key={step.title} className="relative flex gap-4 pb-5 last:pb-0">

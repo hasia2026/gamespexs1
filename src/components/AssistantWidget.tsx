@@ -19,6 +19,14 @@ const GREETING: Msg = {
     "Hey! I'm the GAMESPEXS assistant. Ask me anything — joining, Player Numbers, your signature identity, the quadrant matrix, or staff tools.",
 };
 
+const SUGGESTIONS = [
+  "How do I join?",
+  "What's a Player Number?",
+  "How do signature colors work?",
+  "Where do I rate games?",
+  "Show me around this page",
+];
+
 export default function AssistantWidget() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -31,8 +39,8 @@ export default function AssistantWidget() {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight });
   }, [messages, busy, open]);
 
-  async function send() {
-    const text = input.trim();
+  async function send(preset?: string) {
+    const text = (preset ?? input).trim();
     if (!text || busy) return;
     const next: Msg[] = [...messages, { role: "user", content: text }];
     setMessages(next);
@@ -103,6 +111,20 @@ export default function AssistantWidget() {
           </div>
 
           <div className="border-t border-gsx-border p-3">
+            {messages.length <= 1 && !busy && (
+              <div className="mb-2 flex flex-wrap gap-1.5">
+                {SUGGESTIONS.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => send(s)}
+                    className="rounded-full border border-gsx-border px-2.5 py-1 text-[11px] text-gsx-muted transition-colors hover:border-gsx-accent/60 hover:text-gsx-text"
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            )}
             <div className="flex gap-2">
               <input
                 value={input}
@@ -119,7 +141,7 @@ export default function AssistantWidget() {
               />
               <button
                 type="button"
-                onClick={send}
+                onClick={() => send()}
                 disabled={busy || !input.trim()}
                 className="rounded gsx-brand-gradient px-3 py-2 text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-40"
               >

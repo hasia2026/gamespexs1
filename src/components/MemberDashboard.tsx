@@ -151,13 +151,6 @@ const pickTwo = (pool: readonly string[]): [string, string] => {
 const CHOICE_HINT =
   "Two colors at a time — tap the one that feels right. Your two picks become your one-of-one member identity.";
 
-function fmt(sec: number): string {
-  const h = Math.floor(sec / 3600);
-  const m = Math.floor((sec % 3600) / 60);
-  const s = sec % 60;
-  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-}
-
 export default function MemberDashboard({
   initial,
   leaderboard,
@@ -169,7 +162,6 @@ export default function MemberDashboard({
 }) {
   const router = useRouter();
   const [member, setMember] = useState<MemberInfo>(initial);
-  const [remaining, setRemaining] = useState(initial.seconds_remaining);
   const [color1, setColor1] = useState<string | null>(initial.signature_color_1);
   const [color2, setColor2] = useState<string | null>(initial.signature_color_2);
   const [signing, setSigning] = useState(false);
@@ -186,25 +178,6 @@ export default function MemberDashboard({
   const dirty = useRef(false);
 
   const locked = member.consent_status === "locked_bubble";
-
-  // The 72:00:00 countdown (server seconds remaining, ticking locally).
-  useEffect(() => {
-    if (locked) return;
-    const t = setInterval(() => {
-      setRemaining((r) => {
-        if (r <= 1) {
-          clearInterval(t);
-          // Auto-lock gateway: refresh server state at 00:00:00.
-          router.refresh();
-          return 0;
-        }
-        return r - 1;
-      });
-    }, 1000);
-    return () => clearInterval(t);
-  }, [locked, router]);
-
-  const expired = remaining <= 0 && !locked;
 
   // Canvas signature pad.
   useEffect(() => {
@@ -309,7 +282,7 @@ export default function MemberDashboard({
         </button>
         <div className="gsx-gradient-text text-3xl font-bold tracking-wide">GAMESPEXS</div>
         <p className="mt-1 text-sm text-gsx-muted">
-          {locked ? "Bubble locked — welcome to the field." : "72-hour free-look tour"}
+          {locked ? "Bubble locked — welcome to the field." : "Free-look tour — lock in whenever you're ready"}
         </p>
         <a
           href="/member/play"
@@ -370,27 +343,15 @@ export default function MemberDashboard({
 
       {shoutouts && <ShoutTicker shoutouts={shoutouts} />}
 
-      {/* Free-look countdown / lock status */}
+      {/* Free-look status — no countdown; lock whenever ready */}
       {!locked && (
-        <section
-          className={`rounded-xl border p-6 text-center ${
-            expired ? "border-gsx-danger/40 bg-gsx-danger/10" : "border-gsx-accent/30 bg-gsx-accent/5"
-          }`}
-        >
-          <div className="text-xs uppercase tracking-wider text-gsx-muted">Free look ends in</div>
-          <div className={`mt-2 font-mono text-4xl font-bold tabular-nums ${expired ? "text-gsx-danger" : "text-gsx-accent"}`}>
-            {fmt(Math.max(0, remaining))}
-          </div>
-          {expired ? (
-            <p className="mt-3 text-sm text-gsx-danger">
-              The tour is over — sign the Explicit Survey Consent below to lock your bubble.
-            </p>
-          ) : (
-            <p className="mt-3 text-xs text-gsx-muted">
-              During the tour you can browse the game catalog and sample single
-              pop-up questions. Lock in early any time.
-            </p>
-          )}
+        <section className="rounded-xl border border-gsx-accent/30 bg-gsx-accent/5 p-6 text-center">
+          <div className="text-xs uppercase tracking-wider text-gsx-muted">Free-look tour</div>
+          <p className="mt-3 text-sm text-gsx-muted">
+            Browse the game catalog and sample single pop-up questions as long as you like —
+            there's no countdown. When you're ready, sign the Explicit Survey Consent below to
+            lock your bubble and claim your permanent Player Number.
+          </p>
           <button
             onClick={() => {
               setPair1(pickTwo(POOL_A));

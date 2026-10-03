@@ -85,6 +85,7 @@ export const NAV: Array<NavItem> = [
     label: "Admin", href: "/admin", icon: "⚙️",
     children: [
       { label: "System Settings", href: "/admin" },
+      { label: "Payouts Ledger", href: "/admin/payouts" },
       { label: "Audit Log", href: "/admin/audit" },
     ],
   },

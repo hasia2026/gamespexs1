@@ -13,14 +13,14 @@ export const dynamic = "force-dynamic";
 const SYSTEM_PROMPT = `You are the GAMESPEXS Platform Assistant, a concise, friendly helper embedded in the GAMESPEXS game research & operations platform.
 
 What you know:
-- Members join at /join ($2.25 standard or the $110 premium bundle, of which exactly $10 goes to charity). Every member gets a permanent Player Number starting at #1001, a 72-hour free-look tour, and locks their bubble by picking two signature colors and signing. Their public identity is always [Last Initial] + [Colors] — first names are never shown publicly. Members can download a shareable identity card from the member page. The quadrant matrix at /member/play is a 2x2 game catalog with 1-5 star ratings and 14-day per-quadrant lockouts.
+- Members join at /join ($2.25 standard or the $110 premium bundle, of which exactly $10 goes to charity). Every member gets a permanent Player Number starting at #1001, a free-look tour with no countdown (they lock whenever they choose), and locks their bubble by picking two signature colors and signing. Their public identity is always [Last Initial] + [Colors] — first names are never shown publicly. Members can download a shareable identity card from the member page. The quadrant matrix at /member/play is a 2x2 game catalog with 1-5 star ratings and 14-day per-quadrant lockouts.
 - Staff sign in at /login and land on the Command Center with the full sidebar (Game Library, Research Engine, Field Operations, Sponsors, People, Admin). Sponsors land on a read-only portal at /portal.
 - Founding membership is capped at the first 1,000 Player Numbers, shown live on the member dashboard leaderboard.
 
 Page map (give mini-tours when asked, e.g. "where do I rate games?" or "show me around the research engine"):
 - Member: /join (signup, $2.25 or $110), /member (identity card, signature colors, shareable card, founding leaderboard, shout ticker, lock flow), /member/play (2x2 quadrant matrix, star ratings, 14-day lockouts).
 - Public kiosks: /checkin/[eventId] (QR walk-up check-in), /research/sessions/[id]/run (survey runner).
-- Staff: / (Command Center KPIs), /operations (channel & location summary), /games + /games/categories + /games/mechanics (catalog & taxonomy), /research (studies, participants, sessions w/ gaze heatmap, surveys w/ distribution charts, mechanic insights, data quality, findings & reports, integrity), /field (fleet, routes, events, teams, equipment tabs + per-event command center + QR poster), /sponsors + /sponsors/report, /community, /institutional, /content, /people, /admin + /admin/audit (every write is logged), /storefront (Phase 7 stub).
+- Staff: / (Command Center KPIs), /operations (channel & location summary), /games + /games/categories + /games/mechanics (catalog & taxonomy), /research (studies, participants, sessions w/ gaze heatmap, surveys w/ distribution charts, mechanic insights, data quality, findings & reports, integrity), /field (fleet, routes, events, teams, equipment tabs + per-event command center + QR poster), /sponsors + /sponsors/report, /community, /institutional, /content, /people, /admin + /admin/audit (every write is logged), /admin/payouts (the payouts ledger: ⅓-⅓-⅓ study splits, judge percentages, street-team commissions), /storefront (Phase 7 stub).
 - Sponsor: /portal (own mentions, activations, engagement-per-dollar — read-only).
 - The platform guide lives in docs/PLATFORM_GUIDE.md; every question you answer is a mini version of it.
 
@@ -30,6 +30,74 @@ Rules:
 - Do not give legal, age-verification, or compliance advice — suggest contacting the GAMESPEXS team.
 - If asked something unrelated to GAMESPEXS, gently steer back to platform help.
 - Sign off longer answers with the house motto: "In games you get another life, in life you get another game!!!!!"`;
+
+// ---------------------------------------------------------------------------
+// Offline brain — pattern-matched answers that work with zero external calls,
+// so the widget is genuinely useful before (or without) ANTHROPIC_API_KEY.
+// Order matters: specific topics first, the generic tour last.
+// ---------------------------------------------------------------------------
+const KB: Array<{ test: RegExp; reply: string }> = [
+  {
+    test: /(api|anthropic|claude|brain|connect|offline)/i,
+    reply:
+      "I'm running in offline mode right now — my full brain switches on when an admin adds the ANTHROPIC_API_KEY environment variable in Vercel (Settings → Environment Variables, then redeploy). But I already know the essentials: joining, Player Numbers, signature colors, ratings, lockouts, sponsors, and payouts. Try the suggestion chips below.",
+  },
+  {
+    test: /(join|sign ?up|price|cost|fee|how much|\$2|\b110\b|premium|standard|charity)/i,
+    reply:
+      "Joining happens at /join: Standard is a one-time $2.25 activation fee; the Premium bundle is $110, of which exactly $10 goes to the children's charity ledger. After joining you get a permanent Player Number and pick two signature colors to lock your bubble.",
+  },
+  {
+    test: /(player ?number|#?1001|numbering|username|handle)/i,
+    reply:
+      "Player Numbers are permanent and sequential, starting at #1001 — custom usernames and handles are banned to keep the community healthy. The first 1,000 numbers are Founding Members, tracked live on the member dashboard leaderboard.",
+  },
+  {
+    test: /(rate|rating|star|quadrant|catalog|lockout|matrix)/i,
+    reply:
+      "Game ratings live at /member/play — the quadrant matrix. Every game gets a 1–5 star rating; 4–5 stars unlock deeper tracking for that genre, and 1–2 stars trigger the 14-day genre lockout so the research data stays unbiased.",
+  },
+  {
+    test: /(color|signature|identity|initial|bubble|lock|consent)/i,
+    reply:
+      "Your identity is two signature colors + your last initial — never a typed username. On /member you pick from randomized two-color pools, preview your pair, then sign the Explicit Survey Consent to lock your bubble permanently. Afterwards you can download your shareable member card right from the dashboard.",
+  },
+  {
+    test: /(password|log ?in|sign ?in|forgot|reset|account)/i,
+    reply:
+      "Sign in at /login. Forgot your password? Use the “Forgot password?” link there — a branded reset email arrives with a link to set a new one. Still stuck? Contact GAMESPEXS staff.",
+  },
+  {
+    test: /(sponsor|portal|ticker|shout|ad|merch)/i,
+    reply:
+      "Sponsors get a read-only portal at /portal with their mentions, activations, and engagement-per-dollar. Members see sponsor shoutouts in the ticker on the member dashboard. B2B storefront spots start at $1/day.",
+  },
+  {
+    test: /(payout|ledger|split|commission|payroll|judge|street team|paid)/i,
+    reply:
+      "Payouts are staff-only. The ledger automates the blueprint's fixed splits: studies divide one-third participant / one-third interviewer / one-third platform; judges earn a percentage of sessions they oversee; street-team commissions are 50¢/card, 75¢/click, and $1 plus commission per sale. Staff find it under Admin → Payouts Ledger.",
+  },
+  {
+    test: /(motto|quote|saying)/i,
+    reply: "“In games you get another life, in life you get another game!!!!!”",
+  },
+  {
+    test: /(tour|show me|around|where|what can i|help|how (do|does)|start|guide)/i,
+    reply:
+      "Quick tour: members live at /member — identity card, founding leaderboard, sponsor ticker — and rate games at /member/play. Staff sign in to the Command Center with the full sidebar: Game Library, Research Engine, Field Operations, Sponsors, People, Admin. Sponsors land at /portal.",
+  },
+];
+
+function answerLocally(question: string, page: string): string {
+  const hit = KB.find((entry) => entry.test.test(question));
+  if (hit) return hit.reply;
+  const ctx = page && page !== "/" ? ` You're on ${page} right now — every page also has staff tooling one level up.` : "";
+  return (
+    "I'm in offline mode, so I know the essentials best: joining, Player Numbers, signature colors, ratings and lockouts, sponsors, and payouts." +
+    ctx +
+    " Try one of the suggestion chips, or ask staff for anything deeper."
+  );
+}
 
 interface IncomingMessage {
   role?: unknown;
@@ -74,10 +142,9 @@ export async function POST(req: Request) {
   }
 
   if (!apiKey) {
-    return Response.json({
-      reply:
-        "I'm not connected to my brain yet — an admin needs to add the ANTHROPIC_API_KEY environment variable (get one at console.anthropic.com). Until then, try the links at the top of the page or ask staff.",
-    });
+    // Offline brain: answer from the built-in knowledge base.
+    const question = history[history.length - 1]?.content ?? "";
+    return Response.json({ reply: answerLocally(question, page) });
   }
 
   try {
