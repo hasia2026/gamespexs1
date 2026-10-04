@@ -12,7 +12,13 @@ const CHARITY_CENTS = 1000; // exactly 1% of the premium bundle
 
 const usd = (c: number) => `$${(c / 100).toFixed(2)}`;
 
-export function JoinForm({ initialShowUpgrade = false }: { initialShowUpgrade?: boolean }) {
+export function JoinForm({
+  initialShowUpgrade = false,
+  refCode = null,
+}: {
+  initialShowUpgrade?: boolean;
+  refCode?: string | null;
+}) {
   const router = useRouter();
   const [tier, setTier] = useState<"standard" | "premium" | "both">("standard");
   // Addendum Q2 upgrade window: modal choice view triggered by a paid-study link.
@@ -64,6 +70,21 @@ export function JoinForm({ initialShowUpgrade = false }: { initialShowUpgrade?: 
       setBusy(false);
       return;
     }
+
+    // Street-team attribution: first active ref wins (30-day cookie window
+    // set by the proxy, or the ?ref= param on this page). Never blocks signup.
+    try {
+      const code =
+        refCode ||
+        document.cookie.match(/(?:^|; )gsx_ref=([^;]+)/)?.[1]?.toUpperCase() ||
+        null;
+      if (code) {
+        await supabase.rpc("ref_attribute_signup", { p_code: code });
+      }
+    } catch {
+      // Attribution is best-effort.
+    }
+
     router.replace("/member?welcome=1");
     router.refresh();
   }

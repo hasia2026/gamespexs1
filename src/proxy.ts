@@ -56,6 +56,20 @@ export async function proxy(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser();
   const { pathname, search } = request.nextUrl;
+
+  // Street-team referral: any ?ref=CODE visit stores a 30-day attribution
+  // cookie (the click itself is logged server-side on /join, the canonical
+  // worker link destination).
+  const refParam = request.nextUrl.searchParams.get("ref");
+  if (refParam && /^[A-Za-z0-9][A-Za-z0-9-]{2,31}$/.test(refParam)) {
+    supabaseResponse.cookies.set("gsx_ref", refParam.toUpperCase(), {
+      path: "/",
+      maxAge: 60 * 60 * 24 * 30,
+      sameSite: "lax",
+      httpOnly: false,
+    });
+  }
+
   if (!user && !isPublic(pathname)) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/login";

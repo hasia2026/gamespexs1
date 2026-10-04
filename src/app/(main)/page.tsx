@@ -4,21 +4,35 @@ import { getDashboardStats, getFindings, getMembershipChoices, getSessions, getS
 import { getActiveProfile } from "@/lib/roles";
 import { createClient } from "@/lib/supabase/server";
 import { Badge, Card, PageHeader, StatCard, Table, Td, statusTone } from "@/components/ui";
+import type { RefTotals } from "@/components/StreetTeamDesk";
 
 export const dynamic = "force-dynamic";
 
 export default async function CommandCenter() {
   // Sponsor contacts live in the read-only partner portal, not the staff console.
+  const supabase = await createClient();
+
   const profile = await getActiveProfile();
   if (profile?.role === "sponsor") redirect("/portal");
 
   // Members have no staff profile — land them on their one-page dashboard
   // instead of an empty staff console.
   if (!profile) {
-    const supabase = await createClient();
     if (supabase) {
       const { data: mm } = await supabase.rpc("member_me");
       if ((mm as { ok?: boolean } | null)?.ok) redirect("/member");
+    }
+  }
+
+  // Street-team telemetry — staff-only RPC; non-staff roles simply skip it.
+  let refTelemetry: RefTotals | null = null;
+  if (supabase) {
+    try {
+      const { data: refRaw } = await supabase.rpc("ref_desk_overview");
+      const totals = (refRaw as { totals?: RefTotals } | null)?.totals;
+      if (totals) refTelemetry = totals;
+    } catch {
+      refTelemetry = null;
     }
   }
 
@@ -136,6 +150,52 @@ export default async function CommandCenter() {
           </Card>
         </div>
       </section>
+
+      {refTelemetry && (
+        <section>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="font-semibold">Street Team — live</h2>
+            <Link href="/admin/street-team" className="text-xs text-gsx-accent hover:underline">
+              Manage workers →
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
+            <StatCard
+              label="Active Workers"
+              value={refTelemetry.workers_active}
+              sub={`${refTelemetry.workers_total} total`}
+            />
+            <StatCard
+              label="Clicks · 7 days"
+              value={refTelemetry.clicks_7d}
+              sub={`${refTelemetry.clicks_total} all time`}
+            />
+            <StatCard
+              label="Signups Referred"
+              value={refTelemetry.conversions}
+              sub={`${
+                refTelemetry.clicks_total > 0
+                  ? Math.round((refTelemetry.conversions / refTelemetry.clicks_total) * 100)
+                  : 0
+              }% of clicks`}
+            />
+            <StatCard
+              label="Members via Street Team"
+              value={
+                refTelemetry.members_total > 0
+                  ? `${Math.round((refTelemetry.attributed_members / refTelemetry.members_total) * 100)}%`
+                  : "0%"
+              }
+              sub={`${refTelemetry.attributed_members} of ${refTelemetry.members_total} members`}
+            />
+            <StatCard
+              label="Commission Owed"
+              value={`$${(refTelemetry.owed_cents / 100).toFixed(2)}`}
+              sub={`$${(refTelemetry.paid_cents / 100).toFixed(2)} paid`}
+            />
+          </div>
+        </section>
+      )}
 
       <section>
         <h2 className="mb-3 font-semibold">Latest Findings</h2>

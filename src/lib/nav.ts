@@ -87,6 +87,7 @@ export const NAV: Array<NavItem> = [
       { label: "System Settings", href: "/admin" },
       { label: "Payouts Ledger", href: "/admin/payouts" },
       { label: "Corporate Packages", href: "/admin/packages" },
+      { label: "Street Team", href: "/admin/street-team" },
       { label: "Audit Log", href: "/admin/audit" },
     ],
   },

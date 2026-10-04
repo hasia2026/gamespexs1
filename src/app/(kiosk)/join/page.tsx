@@ -1,4 +1,5 @@
 import { JoinForm } from "@/components/JoinForm";
+import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +12,21 @@ export default async function JoinPage({
   // which opens the upgrade-window modal choice ($2.25 base vs $110 premium).
   const params = await searchParams;
   const fromPaidStudy = params.paid === "1" || params.paid === "true";
+
+  // Street-team tracking: log the click server-side (definer RPC ignores
+  // unknown codes) and pass the code to the form so the signup attributes.
+  const refRaw = typeof params.ref === "string" ? params.ref : "";
+  const refCode = /^[A-Za-z0-9][A-Za-z0-9-]{2,31}$/.test(refRaw) ? refRaw.toUpperCase() : null;
+  if (refCode) {
+    try {
+      const supabase = await createClient();
+      if (supabase) {
+        await supabase.rpc("ref_log_click", { p_code: refCode, p_path: "/join" });
+      }
+    } catch {
+      // Click logging must never block a signup.
+    }
+  }
 
   return (
     <div className="flex w-full max-w-2xl flex-1 flex-col">
@@ -32,7 +48,7 @@ export default async function JoinPage({
       </div>
 
       <div className="mt-6">
-        <JoinForm initialShowUpgrade={fromPaidStudy} />
+        <JoinForm initialShowUpgrade={fromPaidStudy} refCode={refCode} />
       </div>
 
       <div className="mt-6 text-center text-xs text-gsx-muted">
