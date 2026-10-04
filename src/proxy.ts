@@ -14,6 +14,7 @@ function isPublic(pathname: string): boolean {
   if (
     pathname === "/login" ||
     pathname === "/join" ||
+    pathname === "/packages" ||
     pathname === "/forgot-password" ||
     pathname === "/reset-password" ||
     pathname === "/member" ||
