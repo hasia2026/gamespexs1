@@ -166,7 +166,7 @@ begin
         'id', w.id, 'label', w.label, 'code', w.code, 'is_active', w.is_active,
         'created_at', w.created_at,
         'clicks_total', coalesce(c.total, 0),
-        'clicks_7d', coalesce(c.week, 0),
+        'clicks_7d', coalesce(c7.week, 0),
         'conversions', coalesce(cv.total, 0),
         'gross_cents', coalesce(cv.gross, 0),
         'owed_cents', coalesce(pl.owed, 0),
