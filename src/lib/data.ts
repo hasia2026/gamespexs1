@@ -12,8 +12,9 @@ import {
   demoTeamAssignments,
   demoEvents, demoFindings, demoGameMechanics, demoGames, demoGaze,
   demoLocations, demoMechanics, demoMetrics, demoParticipants, demoPeople,
+  demoLaunchQuestions, demoLaunchResponses, demoLaunchSessions, demoLaunchSurvey,
   demoQuestions, demoReports, demoResponses, demoRoutes, demoSessions,
-  demoSponsorPackages, demoSponsorships, demoSponsors, demoStudies, demoSurvey,
+  demoSponsorPackages, demoSponsorships, demoSponsors, demoStudies, demoSurveys,
   demoTeams, demoUnits, demoDashboardStats,
 } from "./demo";
 import type {
@@ -259,7 +260,8 @@ export function getParticipants(): Promise<Participant[]> {
 // ----------------------------------------------------------------- sessions
 export async function getSessions(): Promise<ResearchSession[]> {
   if (DEMO_MODE) {
-    return demoSessions.map((s) => ({
+    const all = [...demoSessions, ...demoLaunchSessions];
+    return all.map((s) => ({
       ...s,
       study: demoStudies.find((st) => st.id === s.study_id),
       participant: demoParticipants.find((p) => p.id === s.participant_id),
@@ -279,12 +281,13 @@ export async function getSessions(): Promise<ResearchSession[]> {
 
 // -------------------------------------------------------- surveys & results
 export function getSurveys(): Promise<Survey[]> {
-  if (DEMO_MODE) return Promise.resolve([demoSurvey]);
+  if (DEMO_MODE) return Promise.resolve(demoSurveys);
   return liveList<Survey>("surveys", "created_at");
 }
 
 export async function getQuestions(surveyId: string): Promise<SurveyQuestion[]> {
-  if (DEMO_MODE) return demoQuestions.filter((q) => q.survey_id === surveyId);
+  if (DEMO_MODE)
+    return [...demoQuestions, ...demoLaunchQuestions].filter((q) => q.survey_id === surveyId);
   const supabase = await createClient();
   if (!supabase) return [];
   const { data } = await supabase
@@ -320,7 +323,10 @@ async function getSessionMetrics(sessionId: string): Promise<SessionMetric[]> {
 async function getSessionQuestions(session: ResearchSession) {
   if (DEMO_MODE) {
     const responses = demoResponses.filter((r) => r.session_id === session.id);
-    return demoQuestions.map((q) => ({
+    const pool = [...demoQuestions, ...demoLaunchQuestions].filter(
+      (q) => q.survey_id === (session.study_id === "std-10" ? "srv-2" : "srv-1"),
+    );
+    return pool.map((q) => ({
       question: q,
       response: responses.find((r) => r.question_id === q.id)?.response_value ?? null,
     }));
@@ -361,6 +367,12 @@ export async function getSurveyResults(surveyId: string) {
 }
 
 function buildDistribution(q: SurveyQuestion, values: unknown[]): Array<{ label: string; count: number }> {
+  if (q.question_type === "star_5") {
+    return Array.from({ length: 5 }, (_, i) => ({
+      label: "★".repeat(i + 1),
+      count: values.filter((v) => Number(v) === i + 1).length,
+    }));
+  }
   if (q.question_type === "likert_5" || q.question_type === "multiple_choice") {
     const labels = (q.options as string[]) ?? [];
     return labels.map((label) => ({ label, count: values.filter((v) => v === label).length }));

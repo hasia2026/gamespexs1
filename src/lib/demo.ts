@@ -34,12 +34,45 @@ export const demoPeople: Person[] = [
 ];
 
 export const demoCategories = [
-  { id: "cat-video", name: "Video Games", description: "Digital and closed-network game titles" },
-  { id: "cat-board", name: "Board Games", description: "Tabletop board games" },
-  { id: "cat-card", name: "Card Games", description: "Playing-card and trading-card games" },
-  { id: "cat-paper", name: "Paper Games", description: "Pencil-and-paper games, puzzles, mazes" },
-  { id: "cat-sports", name: "Sports / Team Games", description: "Physical and team-based games" },
-  { id: "cat-odd", name: "Odd Games", description: "Novel, experimental, and unusual games" },
+  {
+    id: "cat-video",
+    name: "Video Games",
+    description:
+      "Digital immersive experiences. Subgenres: Action & Combat (FPS, fighting, hack-and-slash, beat-'em-ups); Adventure & Narrative (point-and-click, visual novels, interactive dramas); RPG (tactical, open-world action, turn-based fantasy); Strategy & Tactics (RTS, TBS, tower defense, grand strategy); Simulation & Sandbox (city builders, life sims, vehicle sims, voxel building); Sports & Racing; Puzzle & Logic (physics, tile-matching, trivia, hidden-object); Platformers (2D/3D precision, side-scrollers, runners); Survival & Horror (crafting survival, psychological thrillers, escape games).",
+  },
+  {
+    id: "cat-board",
+    name: "Board Games",
+    description:
+      "Tabletop strategy, resource-gathering, and thematic family games. Subgenres: Abstract Strategy (zero-luck positioning like chess); Eurogames (resource and economic engines, low conflict); Ameritrash / Thematic (high-conflict dice, cards, story); Party & Social Deduction (hidden roles, acting, voting); Cooperative Tabletop (all players vs. the board); Deckbuilding & Engine Builders; Roll-and-Write; Dexterity & Physical (steady hands, stacking, flicking, balance).",
+  },
+  {
+    id: "cat-card",
+    name: "Card Games",
+    description:
+      "Trick-taking decks, collectible trading card systems, and quick casual matching. Subgenres: Classic Card Games (standard multi-suit deck); Trading Card Games / Collectible (collect, trade, duel); Fast-Paced Shedding Games (casual color and action shedding).",
+  },
+  {
+    id: "cat-paper",
+    name: "Paper Games",
+    description:
+      "Grid-based, word-deduction, and turn-based games played on paper. Subgenres: Grid & Capture (dots and boxes); Word & Letter Deduction (hangman); Combat & Fleet Guessing (battleship grids); Paper Adventure & Mazes; Abstract Paper Strategy (tic-tac-toe, sprout); Combinatorial Number Puzzles (Sudoku); Cryptic & Cypher Deduction.",
+  },
+  { id: "cat-invasion", name: "Invasion Ball Games", description: "Team sports focused on invading territory to score (basketball, soccer, football). Subgenre: Invasion Games." },
+  { id: "cat-netwall", name: "Net & Wall Games", description: "Objects sent over a net or against a wall to prevent a return (volleyball, tennis). Subgenre: Net & Wall Games." },
+  { id: "cat-target", name: "Target & Precision Sports", description: "Hitting specific targets with extreme accuracy (bowling, archery). Subgenres: Target & Precision; Striking & Fielding (baseball-style hit-and-run)." },
+  { id: "cat-cue", name: "Cue Sports", description: "Table-based precision games striking balls with a cue into pockets (billiards, pool)." },
+  {
+    id: "cat-simrpg",
+    name: "Simulation & Role-Playing Games",
+    description: "Deep world-building, creative sandbox choices, and character growth across tabletop and digital.",
+  },
+  {
+    id: "cat-odd",
+    name: "Odd Games & Custom Rules",
+    description:
+      "Unconventional play with specialized local guidelines, unique props, or creative challenges. Includes yard games (horseshoes, cornhole, bocce), tag & chasing, parachute group games, rhythm & audio timing, pinball & mechanical ball physics, and light-gun target tracking.",
+  },
 ];
 
 const game = (
@@ -59,7 +92,7 @@ export const demoGames: Game[] = [
   game("gm-4", "Patchwork Prairie", "cat-board", "TableRock", 2021, 2, 4, 45, "medium", "Tile-laying board game."),
   game("gm-5", "Skull Deck", "cat-card", "In-house", 2022, 2, 6, 20, "low", "House card game with rapid round resolution."),
   game("gm-6", "Cipher Sheets", "cat-paper", "In-house", 2023, 1, 8, 30, "low", "Pencil-and-paper deduction packet."),
-  game("gm-7", "Bucket Line Relay", "cat-sports", "In-house", 2020, 6, 12, 20, "low", "Team relay game for field events."),
+  game("gm-7", "Bucket Line Relay", "cat-invasion", "In-house", 2020, 6, 12, 20, "low", "Team relay game for field events."),
   game("gm-8", "The Odd Orb", "cat-odd", "In-house", 2024, 1, 3, 10, "low", "Experimental physical-dexterity game."),
 ];
 
@@ -87,6 +120,7 @@ export const demoStudies: Study[] = [
   { id: "std-1", organization_id: "org-1", code: "GSX-2026-001", title: "Engagement Baseline Study", research_question: "Which game mechanics sustain engagement the longest?", status: "active", starts_on: "2026-08-01", ends_on: "2026-12-31", lead_person_id: "per-1" },
   { id: "std-2", organization_id: "org-1", code: "GSX-2026-002", title: "Closed-Network Pilot", research_question: "Can closed-network game sessions reduce reported tension in institutional settings?", status: "active", starts_on: "2026-09-01", ends_on: "2027-02-28", lead_person_id: "per-1" },
   { id: "std-3", organization_id: "org-1", code: "GSX-2026-003", title: "Odd Games Field Trial", research_question: "Do novel games produce higher curiosity metrics than familiar formats?", status: "draft", starts_on: "2026-10-15", ends_on: "2027-01-31", lead_person_id: "per-1" },
+  { id: "std-10", organization_id: "org-1", code: "GSX-2026-010", title: "Launch Library Baseline", research_question: "Do the launch-wide star ratings (master genre + play-habit banks) reveal distinct genre passion per member bubble?", status: "active", starts_on: "2026-10-01", ends_on: "2027-10-01", lead_person_id: "per-1" },
 ];
 
 const participant = (i: number, by: number, g: string, d: number): Participant => ({
@@ -157,6 +191,112 @@ export const demoSurvey: Survey = {
   question_limit: 15,
   status: "active",
 };
+
+export const demoLaunchSurvey: Survey = {
+  id: "srv-2",
+  study_id: "std-10",
+  title: "GAMESPEXS Launch Library",
+  description:
+    "Steve's phase-two launch bank: 75 one-at-a-time star questions across modern releases, specific game elements, activity tracking, playstyles, and spectating habits.",
+  estimated_minutes: 45,
+  question_limit: 200,
+  status: "active",
+};
+
+export const demoSurveys: Survey[] = [demoSurvey, demoLaunchSurvey];
+
+const launchStars = [
+  'How would you rate the overall quality of the biggest game releases out this year?',
+  'Rate the level of pure excitement and hype surrounding current multiplayer team games!',
+  'How would you rate the storytelling or narrative depth in modern adventure games?',
+  'Rate the satisfaction level and strategic depth found in current strategy game genres.',
+  'How high would you rate the tension and pacing in modern action or survival genres?',
+  'Rate the learning curve of today\'s casual puzzle games—are they easy to pick up and play?',
+  'How would you rate the visual style, art design, and graphics of modern game releases?',
+  'Rate the level of community teamwork and cooperation required in today\'s co-op genres.',
+  'How would you rate the nostalgia or classic charm found in current retro-style indie games?',
+  'Rate the competitive fairness and balance in modern sports or tactical team games.',
+  'How would you rate the level of freedom and discovery in today\'s open-environment genres?',
+  'Rate the audio design, music soundtracks, and voice acting in modern game releases.',
+  'How would you rate the replay value—how eager are you to replay current game titles?',
+  'Rate the innovation—how fresh or unique do modern game mechanics feel right now?',
+  'How would you rate your overall preference for modern digital games compared to classic physical games?',
+  'How would you rate the overall "fun factor" of this game when playing with a group?',
+  'Rate the level of teamwork or cooperation required to win this game!',
+  'How high is the usual tension or hype during the peak moments of this game?',
+  'Rate how friendly or casual the vibes are when introducing this game to beginners.',
+  'How would you rate the immersion—is this a game where you easily lose track of time?',
+  'Rate the satisfaction level of pulling off a successful strategy or winning play in this game!',
+  'How would you rate the potential for laugh-out-loud or hilarious moments during a match?',
+  'Rate the comeback potential—does this game keep things close until the very end?',
+  'How would you rate the skill level required to truly master this game\'s mechanics?',
+  'Rate the level of social connection and interaction this game naturally creates between players.',
+  'How would you rate the visual design, art style, or overall look of this game?',
+  'Rate the learning curve—how easy is it to pick up and understand on the very first try?',
+  'How much classic nostalgia or timeless charm does this game bring to the table?',
+  'Rate the final scoring or victory conditions—how satisfying is the ultimate conclusion?',
+  'How would you rate your overall desire to recommend this game to a friend looking for something new?',
+  'How much do you enjoy playing basketball?',
+  'How much do you enjoy watching basketball matches?',
+  'How would you rate your overall love for playing video games?',
+  'How much do you enjoy watching video game streams or tournaments?',
+  'How would you rate your overall enjoyment of playing board games?',
+  'How much do you enjoy watching competitive or casual board game play?',
+  'How much do you enjoy playing billiards or pool?',
+  'How much do you enjoy watching skilled billiards or trick-shot matches?',
+  'How much do you enjoy playing tennis?',
+  'How much do you enjoy watching professional tennis matches?',
+  'How much do you enjoy playing volleyball games?',
+  'How much do you enjoy watching live volleyball matches?',
+  'How would you rate your interest in playing quick, casual party games?',
+  'How would you rate your interest in watching large-group interactive games?',
+  'How eager are you to discover entirely new categories of games to play or watch?',
+  'How much do you enjoy playing fast-paced team games?',
+  'How much do you enjoy watching strategic team games?',
+  'How would you rate your interest in playing traditional turn-based games?',
+  'How much do you enjoy watching high-stakes competitive matches?',
+  'How would you rate your enjoyment of playing precision or target-based games?',
+  'How much do you enjoy watching skilled precision or trick-shot demonstrations?',
+  'How would you rate your interest in playing local, couch-cooperative games?',
+  'How much do you enjoy watching analytical or puzzle-solving games?',
+  'How much do you enjoy playing large-scale interactive group games?',
+  'How would you rate your interest in watching fast-reflex or athletic games?',
+  'How would you rate your enjoyment of playing classic tile or token placement games?',
+  'How much do you enjoy watching casual, fun-first exhibitions?',
+  'How eager are you to try out new styles of competitive strategy games?',
+  'How would you rate your preference for watching games with a live crowd or audience?',
+  'How much do you enjoy tracking or following performance statistics in games?',
+  'How much do you enjoy playing games that require quick decision-making under a timer?',
+  'How much do you enjoy watching games where commentators break down the strategies?',
+  'How would you rate your interest in playing cooperative games where everyone wins together?',
+  'How much do you enjoy watching high-energy, fast-moving match highlights?',
+  'How would you rate your interest in playing games that rely purely on luck and chance?',
+  'How much do you enjoy watching a master of a specific game demonstrate their skill?',
+  'How would you rate your interest in playing hidden-information or mystery games?',
+  'How much do you enjoy watching games that have a massive, dramatic final conclusion?',
+  'How would you rate your enjoyment of playing games with simple, straightforward rule sets?',
+  'How much do you enjoy watching rivalries or close matches between top-tier competitors?',
+  'How would you rate your interest in playing games that use physical pieces, cards, or tokens?',
+  'How much do you enjoy watching casual, stress-free games played just for laughs?',
+  'How would you rate your preference for playing games in short, quick bursts?',
+  'How much do you enjoy spectating or watching games alongside a group of friends?',
+  'How eager are you to rate and review different styles of games that you discover?',
+];
+
+export const demoLaunchQuestions: SurveyQuestion[] = launchStars.map((prompt, i) => ({
+  id: `lq-${i + 1}`,
+  survey_id: "srv-2",
+  ordinal: i + 1,
+  prompt,
+  question_type: "star_5" as const,
+  options: [],
+  required: true,
+  quadrant: null,
+  // Tablet sequencing: modern + specific-game reflections first,
+  // activity/playstyle/spectating banks after.
+  phase: (i >= 30 ? "play_history" : "post_game") as "play_history" | "post_game",
+  custom_slot: null,
+}));
 
 export const demoQuestions: SurveyQuestion[] = [
   { id: "q-1", survey_id: "srv-1", ordinal: 1, prompt: "How fun was the game overall?", question_type: "likert_5", options: ["Not fun", "Slightly fun", "Moderately fun", "Very fun", "Extremely fun"], required: true },
@@ -232,6 +372,39 @@ export const demoMetrics: SessionMetric[] = demoSessions.flatMap((sess) =>
     unit,
     captured_at: sess.session_date,
     source: src,
+  })),
+);
+
+// ============================================================================
+// LAUNCH LIBRARY DEMO DATA — 3 live sessions on the launch study + responses
+// ============================================================================
+
+const launchSessionSeeds: Array<{ participant: number; game: string; loc: string; days: number }> =([
+  { participant: 1, game: "gm-2", loc: "loc-1", days: 4 },
+  { participant: 6, game: "gm-5", loc: "loc-1", days: 2 },
+  { participant: 9, game: "gm-2", loc: "loc-2", days: 1 },
+]);
+
+export const demoLaunchSessions: ResearchSession[] = launchSessionSeeds.map((s, i) => ({
+  id: `lsess-${i + 1}`,
+  study_id: "std-10",
+  participant_id: `part-${s.participant}`,
+  game_id: s.game,
+  location_id: s.loc,
+  session_date: daysAgo(s.days),
+  duration_minutes: 18 + i * 6,
+  interviewer_id: "per-2",
+  channel: s.loc === "loc-2" ? "mobile_unit" : "storefront",
+  status: "complete",
+}));
+
+export const demoLaunchResponses: SurveyResponse[] = demoLaunchSessions.flatMap((sess) =>
+  demoLaunchQuestions.map((q) => ({
+    id: `lresp-${sess.id}-${q.id}`,
+    session_id: sess.id,
+    question_id: q.id,
+    response_value: 1 + Math.floor(rand() * 5),
+    answered_at: sess.session_date,
   })),
 );
 

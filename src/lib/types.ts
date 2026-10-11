@@ -171,7 +171,7 @@ export interface SurveyQuestion {
   survey_id: string;
   ordinal: number;
   prompt: string;
-  question_type: "likert_5" | "multiple_choice" | "free_text" | "boolean" | "rating_10" | "ranking";
+  question_type: "likert_5" | "multiple_choice" | "free_text" | "boolean" | "rating_10" | "ranking" | "star_5";
   options: unknown[];
   required: boolean;
   quadrant?: string | null;

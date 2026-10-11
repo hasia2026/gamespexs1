@@ -11,7 +11,7 @@ export default async function SurveysPage() {
     <div className="space-y-6">
       <PageHeader
         title="Surveys"
-        sub="Blueprint constraint: every survey is capped at 15 questions and targets a 10–12 minute completion window."
+        sub="Survey instruments for the research engine — complete with per-question result distributions."
       />
 
       {await Promise.all(
@@ -28,7 +28,7 @@ export default async function SurveysPage() {
                   )}
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge tone="blue">{questions.length}/15 questions</Badge>
+                  <Badge tone="blue">{questions.length} questions</Badge>
                   <Badge tone="gray">{sv.estimated_minutes} min target</Badge>
                   <Badge tone={statusTone(sv.status)}>{sv.status}</Badge>
                 </div>

@@ -22,6 +22,7 @@ export const NAV: Array<NavItem> = [
     label: "Game Library", href: "/games", icon: "🎲",
     children: [
       { label: "All Games", href: "/games" },
+      { label: "Master Genres", href: "/games/genres" },
       { label: "Categories", href: "/games/categories" },
       { label: "Mechanics", href: "/games/mechanics" },
     ],

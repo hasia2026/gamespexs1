@@ -9,6 +9,15 @@ import type { Survey, SurveyQuestion } from "@/lib/types";
 const SOFT_LIMIT_MIN = 10; // warn at 10 minutes (blueprint floor)
 const HARD_LIMIT_MIN = 12; // auto-submit at 12 minutes (blueprint ceiling)
 
+// Long instruments (e.g. the 75-question Launch Library) get a timer that
+// scales with size: ~40 seconds per star question plus a small buffer, so
+// respondents are never force-submitted halfway through.
+function limitsFor(questionCount: number): { soft: number; hard: number } {
+  if (questionCount <= 15) return { soft: SOFT_LIMIT_MIN, hard: HARD_LIMIT_MIN };
+  const soft = Math.ceil((questionCount * 40) / 60);
+  return { soft, hard: soft + Math.max(3, Math.ceil(questionCount / 15)) };
+}
+
 // The 2x2 symmetrical screen matrix (blueprint): Q1 team ball, Q2 video, Q3 board, Q4 card/odd.
 const QUAD_META: Record<string, { label: string; hue: string }> = {
   q1: { label: "Q1 · Team Ball", hue: "#f08c3a" },
@@ -43,6 +52,10 @@ export default function SurveyRunner({
 }) {
   const [state, action] = useActionState<ActionState | null, FormData>(submitSurveyRun, null);
   const [step, setStep] = useState(0);
+  const { soft, hard } = useMemo(
+    () => limitsFor(questions.length),
+    [questions.length],
+  );
   // No-skip rule: every answer is tracked so the operator cannot advance past
   // an unanswered field. Back (review) stays available; forward does not.
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -56,10 +69,10 @@ export default function SurveyRunner({
   }, [startedAt]);
 
   const minutes = elapsed / 60_000;
-  const overSoft = minutes >= SOFT_LIMIT_MIN;
-  const overHard = minutes >= HARD_LIMIT_MIN;
+  const overSoft = minutes >= soft;
+  const overHard = minutes >= hard;
 
-  // Auto-submit at the 12-minute blueprint ceiling (form.requestSubmit).
+  // Auto-submit at the hard ceiling (form.requestSubmit).
   useEffect(() => {
     if (overHard && !autoSubmitted.current) {
       const form = document.getElementById("runner-form") as HTMLFormElement | null;
@@ -112,13 +125,13 @@ export default function SurveyRunner({
           }`}
         >
           {String(Math.floor(minutes)).padStart(2, "0")}:
-          {String(Math.floor((elapsed % 60_000) / 1000)).padStart(2, "0")} / {HARD_LIMIT_MIN}:00
+          {String(Math.floor((elapsed % 60_000) / 1000)).padStart(2, "0")} / {hard}:00
         </div>
       </header>
 
       {overSoft && !overHard && (
         <div className="mt-4 rounded-lg border border-gsx-warn/30 bg-gsx-warn/10 p-3 text-center text-sm text-gsx-warn">
-          You&apos;re past the {SOFT_LIMIT_MIN}-minute mark — a few minutes left to finish comfortably.
+          You&apos;re past the {soft}-minute mark — a few minutes left to finish comfortably.
         </div>
       )}
       {overHard && (
@@ -229,6 +242,12 @@ export default function SurveyRunner({
                         />
                       </div>
                     )}
+
+                    {current!.question_type === "star_5" && <StarRating
+                      name={fieldId(current!)}
+                      checkedValue={answers[fieldId(current!)]}
+                      onSelect={(v) => setAnswer(fieldId(current!), v)}
+                    />}
 
                     {current!.question_type === "rating_10" && (
                       <div className="grid grid-cols-5 gap-3">
@@ -386,5 +405,45 @@ function RatingButton({
       />
       {value}
     </label>
+  );
+}
+
+/** One-to-five star input. Every star up to the pick lights up gold;
+    the tap target is the whole row (big fingers, tablet-first). */
+function StarRating({
+  name,
+  checkedValue,
+  onSelect,
+}: {
+  name: string;
+  checkedValue?: string;
+  onSelect: (value: string) => void;
+}) {
+  const picked = Number(checkedValue ?? 0);
+  return (
+    <div role="radiogroup" aria-label="Star rating 1 to 5" className="flex items-center gap-2">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <label
+          key={star}
+          className="cursor-pointer px-1 py-2 text-5xl leading-none transition-transform hover:scale-110"
+          title={`${star} star${star === 1 ? "" : "s"}`}
+        >
+          <input
+            type="radio"
+            name={name}
+            value={String(star)}
+            checked={picked === star}
+            onChange={() => onSelect(String(star))}
+            className="sr-only"
+          />
+          <span aria-hidden className={picked >= star ? "text-gsx-gold" : "text-gsx-border"}>
+            ★
+          </span>
+        </label>
+      ))}
+      <span className="ml-3 text-sm text-gsx-muted">
+        {picked > 0 ? `${picked} / 5` : "Tap a star"}
+      </span>
+    </div>
   );
 }
