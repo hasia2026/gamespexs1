@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isDemoMode as DEMO_MODE } from "@/lib/config";
 import MemberDashboard, {
+  type HypeData,
   type LeaderRow,
   type ShoutRow,
 } from "@/components/MemberDashboard";
@@ -52,10 +53,12 @@ export default async function MemberPage() {
     redirect("/");
   }
 
-  // Founding-1,000 leaderboard + sponsor shout-out ticker (both definer RPCs).
-  const [{ data: lbRaw }, { data: shoutRaw }] = await Promise.all([
+  // Founding-1,000 leaderboard, sponsor shout-out ticker, and the member's
+  // own hype summary (all security-definer RPCs).
+  const [{ data: lbRaw }, { data: shoutRaw }, { data: hypeRaw }] = await Promise.all([
     supabase.rpc("founding_leaderboard"),
     supabase.rpc("sponsor_shoutouts"),
+    supabase.rpc("member_hype"),
   ]);
   const leaderboard = (lbRaw ?? null) as {
     leaders: LeaderRow[];
@@ -69,6 +72,7 @@ export default async function MemberPage() {
       initial={snap.member}
       leaderboard={leaderboard ?? undefined}
       shoutouts={shoutouts ?? undefined}
+      hype={(hypeRaw ?? null) as HypeData | null}
     />
   );
 }

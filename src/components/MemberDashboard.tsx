@@ -35,6 +35,24 @@ export interface ShoutRow {
   mention_count: number;
 }
 
+// Steve's phase-two hype hub: My Hype Summary + rating showcase consent.
+export interface HypeRecentRow {
+  game_id: string;
+  title: string;
+  stars: number;
+  quadrant: string | null;
+  rated_at: string;
+}
+
+export interface HypeData {
+  ok: boolean;
+  total_ratings?: number;
+  favorite_genre?: string | null;
+  rating_showcase?: "public" | "private" | null;
+  recent?: HypeRecentRow[];
+  error?: string;
+}
+
 // Founding-1,000 scarcity: lowest / earliest Player Numbers, total member count.
 function FoundingCard({
   leaders,
@@ -88,6 +106,114 @@ function FoundingCard({
         <p className="mt-3 text-xs text-gsx-muted">
           Your Player Number: <span className="font-mono text-gsx-accent-2">#{me}</span>
         </p>
+      )}
+    </section>
+  );
+}
+
+// Steve's blueprint: "Your Bubble, Your Control!" — a mandatory gate before any
+// user rating can be showcased. Consent state defaults to null; never pre-selected.
+function ShowcaseConsent({
+  current,
+  displayName,
+  onChange,
+}: {
+  current: "public" | "private" | null | undefined;
+  displayName: string;
+  onChange: (c: "public" | "private") => Promise<void>;
+}) {
+  const [busy, setBusy] = useState(false);
+  if (current === null || current === undefined) {
+    return (
+      <section className="rounded-xl border border-gsx-gold/40 bg-gsx-gold/5 p-6">
+        <h2 className="text-lg font-semibold">Your Bubble, Your Control!</h2>
+        <p className="mt-2 text-sm text-gsx-muted">
+          We love sharing the joy of gaming, but we never assume. Do you grant us
+          permission to save and showcase your fun 5-star ratings under your
+          anonymous profile name ({displayName})?
+        </p>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => { setBusy(true); void onChange("public").finally(() => setBusy(false)); }}
+            className="rounded bg-gsx-accent px-5 py-3 text-sm font-semibold text-[#0f1210] transition-opacity hover:opacity-90 disabled:opacity-40"
+          >
+            YES — Absolutely, let's log the hype!
+          </button>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => { setBusy(true); void onChange("private").finally(() => setBusy(false)); }}
+            className="rounded border border-gsx-border px-5 py-3 text-sm transition-colors hover:border-gsx-accent/60 disabled:opacity-40"
+          >
+            NO — Keep it private, I just want to play.
+          </button>
+        </div>
+      </section>
+    );
+  }
+  return (
+    <section className="rounded-xl border border-gsx-border bg-gsx-panel p-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span className="text-sm text-gsx-muted">
+          Showcase permission: {""}
+          <span className={current === "public" ? "font-semibold text-gsx-accent" : "font-semibold text-gsx-text"}>
+            {current === "public" ? "public — ratings may be shared" : "private — I just want to play"}
+          </span>
+        </span>
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => {
+            setBusy(true);
+            void onChange(current === "public" ? "private" : "public").finally(() => setBusy(false));
+          }}
+          className="text-xs text-gsx-accent underline disabled:opacity-40"
+        >
+          switch to {current === "public" ? "private" : "public"}
+        </button>
+      </div>
+    </section>
+  );
+}
+
+// My Hype Summary: total ratings, favorite genre, and the recent-rating log.
+function HypeHub({ data }: { data: HypeData }) {
+  if (!data.ok) return null;
+  const stars = (n: number) => "★".repeat(n) + "☆".repeat(5 - n);
+  return (
+    <section className="rounded-xl border border-gsx-border bg-gsx-panel p-6">
+      <h2 className="text-sm font-semibold uppercase tracking-wider text-gsx-muted">My Hype Summary</h2>
+      <div className="mt-3 grid grid-cols-2 gap-3">
+        <div className="rounded-lg border border-gsx-border bg-gsx-panel-2 p-3">
+          <div className="text-2xl font-bold text-gsx-accent-2">{data.total_ratings ?? 0}</div>
+          <div className="text-xs text-gsx-muted">total game ratings logged</div>
+        </div>
+        <div className="rounded-lg border border-gsx-border bg-gsx-panel-2 p-3">
+          <div className="text-2xl font-bold text-gsx-gold">{data.favorite_genre ?? "—"}</div>
+          <div className="text-xs text-gsx-muted">favorite genre so far</div>
+        </div>
+      </div>
+      {(data.recent?.length ?? 0) > 0 && (
+        <>
+          <h3 className="mt-4 text-xs font-semibold uppercase tracking-wider text-gsx-muted">
+            My Recent Hype Logs
+          </h3>
+          <ul className="mt-2 space-y-1.5">
+            {data.recent!.map((r) => (
+              <li
+                key={`${r.game_id}-${r.rated_at}`}
+                className="flex items-center justify-between rounded px-2 py-1 text-sm"
+              >
+                <span className="min-w-0 truncate">{r.title}</span>
+                <span className="shrink-0 font-semibold tracking-widest text-gsx-gold">
+                  {stars(r.stars)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </>
       )}
     </section>
   );
@@ -157,13 +283,16 @@ export default function MemberDashboard({
   initial,
   leaderboard,
   shoutouts,
+  hype: hypeInitial,
 }: {
   initial: MemberInfo;
   leaderboard?: { leaders: LeaderRow[]; member_count: number; founding_capacity: number };
   shoutouts?: ShoutRow[];
+  hype?: HypeData | null;
 }) {
   const router = useRouter();
   const [member, setMember] = useState<MemberInfo>(initial);
+  const [hype, setHype] = useState<HypeData | null | undefined>(hypeInitial);
   const [color1, setColor1] = useState<string | null>(initial.signature_color_1);
   const [color2, setColor2] = useState<string | null>(initial.signature_color_2);
   const [signing, setSigning] = useState(false);
@@ -269,6 +398,19 @@ export default function MemberDashboard({
     setSigning(false);
     setBusy(false);
     router.refresh();
+  }
+
+  const displayNameFull = useMemo(
+    () => `${member.first_name} ${member.last_initial}.`,
+    [member.first_name, member.last_initial],
+  );
+
+  async function setShowcase(choice: "public" | "private") {
+    const supabase = createClient();
+    const { data, error } = await supabase.rpc("set_rating_showcase", { p_choice: choice });
+    const result = (data ?? null) as { ok: boolean; rating_showcase?: string; error?: string } | null;
+    if (error || !result?.ok) return;
+    if (hype) setHype({ ...hype, rating_showcase: choice });
   }
 
   const displayName = useMemo(
@@ -392,6 +534,17 @@ export default function MemberDashboard({
       )}
 
       {shoutouts && <ShoutTicker shoutouts={shoutouts} />}
+
+      {hype && hype.ok && (
+        <HypeHub data={hype} />
+      )}
+      {hype && hype.ok && (
+        <ShowcaseConsent
+          current={hype.rating_showcase}
+          displayName={displayNameFull}
+          onChange={setShowcase}
+        />
+      )}
 
       {/* Free-look status — no countdown; lock whenever ready */}
       {!locked && (
