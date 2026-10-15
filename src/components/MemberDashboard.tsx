@@ -11,6 +11,7 @@ interface MemberInfo {
   player_number: number | null;
   tier: string;
   paid_cents: number;
+  payment_status?: "unpaid" | "paid" | "simulated";
   consent_status: "free_look" | "locked_bubble";
   free_look_ends_at: string;
   seconds_remaining: number;
@@ -308,6 +309,9 @@ export default function MemberDashboard({
   // "Verify your age with ID" button opens a vendor KYC session via the start route.
   const [kycMsg, setKycMsg] = useState<string | null>(null);
   const [kycBusy, setKycBusy] = useState(false);
+  // Stripe finish-payment CTA state.
+  const [payBusy, setPayBusy] = useState(false);
+  const [payMsg, setPayMsg] = useState<string | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawing = useRef(false);
   const dirty = useRef(false);
@@ -459,6 +463,47 @@ export default function MemberDashboard({
             </div>
           </div>
         </div>
+
+        {/* Unpaid Stripe checkout: finish-payment CTA (webhook records the money,
+            so a cancelled browser tab can always be recovered here). */}
+        {member.payment_status === "unpaid" && (
+          <div className="mt-4 rounded-lg border border-gsx-gold/30 bg-gsx-gold/5 p-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="text-xs text-gsx-gold">
+                Payment pending — your {member.tier} membership isn&apos;t activated yet.
+              </span>
+              <button
+                type="button"
+                disabled={payBusy}
+                onClick={async () => {
+                  setPayBusy(true);
+                  setPayMsg(null);
+                  try {
+                    const res = await fetch("/api/stripe/checkout", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ tier: member.tier }),
+                    });
+                    const json = (await res.json()) as { url?: string; error?: string };
+                    if (json.url) {
+                      window.location.assign(json.url);
+                      return;
+                    }
+                    setPayMsg(json.error ?? "Could not start checkout.");
+                  } catch {
+                    setPayMsg("Could not reach checkout — try again shortly.");
+                  } finally {
+                    setPayBusy(false);
+                  }
+                }}
+                className="rounded gsx-brand-gradient px-3 py-1.5 text-xs font-semibold"
+              >
+                {payBusy ? "Opening…" : "Complete payment"}
+              </button>
+            </div>
+            {payMsg && <p className="mt-2 text-[11px] text-gsx-muted">{payMsg}</p>}
+          </div>
+        )}
 
         {/* 18+ status (derived flags only — never ID images or dates of birth). */}
         <div className="mt-3 flex flex-wrap items-center gap-3">

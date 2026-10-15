@@ -1,8 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/config";
 
 const STANDARD_CENTS = 225;
@@ -19,7 +17,6 @@ export function JoinForm({
   initialShowUpgrade?: boolean;
   refCode?: string | null;
 }) {
-  const router = useRouter();
   const [tier, setTier] = useState<"standard" | "premium" | "both">("standard");
   // Addendum Q2 upgrade window: modal choice view triggered by a paid-study link.
   const [showUpgrade, setShowUpgrade] = useState(initialShowUpgrade);
@@ -49,44 +46,42 @@ export function JoinForm({
     setBusy(true);
     setError(null);
 
-    const supabase = createClient();
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          first_name: firstName.trim(),
-          last_initial: lastInitial.trim().toUpperCase(),
+    // Real Stripe Checkout: this route creates the auth account, then a hosted
+    // checkout session, and redirects. The webhook (not a client call) records
+    // the money. If the key isn't live yet, the route answers with a clear
+    // message instead of silently pretending to charge a card.
+    try {
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           tier,
-          // Trigger compares this string to 'true' and stamps attested_at.
-          attested_18: attested ? "true" : undefined,
-        },
-        emailRedirectTo: `${window.location.origin}/member`,
-      },
-    });
-
-    if (error) {
-      setError(error.message);
+          ref_code:
+            refCode ||
+            document.cookie.match(/(?:^|; )gsx_ref=([^;]+)/)?.[1]?.toUpperCase() ||
+            null,
+          signup: {
+            email,
+            password,
+            first_name: firstName.trim(),
+            last_initial: lastInitial.trim().toUpperCase(),
+            attested_18: attested,
+          },
+        }),
+      });
+      const json = (await res.json()) as { url?: string; error?: string };
+      if (json.url) {
+        window.location.assign(json.url);
+        return; // leaving for Stripe — no local state cleanup needed
+      }
+      setError(json.error ?? "Could not start checkout. Try again shortly.");
+      setBusy(false);
+      return;
+    } catch {
+      setError("Could not reach checkout. Check your connection and try again.");
       setBusy(false);
       return;
     }
-
-    // Street-team attribution: first active ref wins (30-day cookie window
-    // set by the proxy, or the ?ref= param on this page). Never blocks signup.
-    try {
-      const code =
-        refCode ||
-        document.cookie.match(/(?:^|; )gsx_ref=([^;]+)/)?.[1]?.toUpperCase() ||
-        null;
-      if (code) {
-        await supabase.rpc("ref_attribute_signup", { p_code: code });
-      }
-    } catch {
-      // Attribution is best-effort.
-    }
-
-    router.replace("/member?welcome=1");
-    router.refresh();
   }
 
   if (showUpgrade) {
@@ -286,7 +281,7 @@ export function JoinForm({
         className="w-full rounded gsx-brand-gradient px-4 py-3 text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-40"
       >
         {busy
-          ? "Creating membership…"
+          ? "Opening secure checkout…"
           : tier === "premium"
             ? `Join Premium — ${usd(PREMIUM_CENTS)}`
             : tier === "both"
@@ -294,8 +289,10 @@ export function JoinForm({
               : `Join Standard — ${usd(STANDARD_CENTS)}`}
       </button>
       <p className="text-center text-[11px] text-gsx-muted">
-        Demo build: payment processing is simulated. Wire Stripe (or similar) before
-        charging real cards.
+        <span className="inline-flex items-center gap-1">
+          <span aria-hidden>🔒</span>
+          Secure checkout by Stripe — card details never touch GAMESPEXS servers.
+        </span>
       </p>
     </form>
   );

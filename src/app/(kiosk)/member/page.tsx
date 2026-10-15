@@ -15,6 +15,7 @@ interface MemberInfo {
   player_number: number | null;
   tier: string;
   paid_cents: number;
+  payment_status?: "unpaid" | "paid" | "simulated";
   consent_status: "free_look" | "locked_bubble";
   free_look_ends_at: string;
   seconds_remaining: number;
